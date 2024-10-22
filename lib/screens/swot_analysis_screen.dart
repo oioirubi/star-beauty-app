@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SWOTAnalysisScreen extends StatelessWidget {
-  const SWOTAnalysisScreen({Key? key}) : super(key: key);
+  const SWOTAnalysisScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +96,7 @@ class SWOTAnalysisScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white),
@@ -105,7 +105,7 @@ class SWOTAnalysisScreen extends StatelessWidget {
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white, // Fundo branco para a área de texto
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(8.0),
@@ -113,7 +113,7 @@ class SWOTAnalysisScreen extends StatelessWidget {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   hintText: hint,
                 ),
                 maxLines: null,

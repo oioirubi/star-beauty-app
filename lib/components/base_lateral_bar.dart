@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:star_beauty_app/themes/app_themes.dart';
 
 class BaseLateralBar extends StatefulWidget {
   final String userType;
   final String userId;
   final bool isExpanded;
+  final Function(String) onNavigate;
 
   const BaseLateralBar({
-    Key? key,
+    super.key,
     required this.userType,
     required this.userId,
     required this.isExpanded,
-  }) : super(key: key);
+    required this.onNavigate,
+  });
 
   @override
   _BaseLateralBarState createState() => _BaseLateralBarState();
 }
 
 class _BaseLateralBarState extends State<BaseLateralBar> {
-  // Estados para controlar a expansão de cada item
   bool isTrainingExpanded = false;
   bool isGPSExpanded = false;
   bool isEntertainmentExpanded = false;
@@ -28,9 +30,10 @@ class _BaseLateralBarState extends State<BaseLateralBar> {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
+        // Menu: Treinamento
         ListTile(
-          leading: Icon(Icons.video_library, color: Colors.black),
-          title: widget.isExpanded ? Text('Treinamento') : null,
+          leading: const Icon(Icons.video_library, color: roxo),
+          title: widget.isExpanded ? const Text('Treinamento') : null,
           onTap: () {
             setState(() {
               isTrainingExpanded = !isTrainingExpanded;
@@ -39,27 +42,29 @@ class _BaseLateralBarState extends State<BaseLateralBar> {
         ),
         if (widget.isExpanded && isTrainingExpanded) ...[
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: Text('Vídeo 1'),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('Starflix'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/training_videos');
+              widget.onNavigate('/training_videos/starflix');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: Text('Vídeo 2'),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('Meu Aprendizado'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/training_videos');
+              widget.onNavigate('/training_videos/recent');
             },
           ),
         ],
+
+        // Menu: GPS da Beleza
         ListTile(
-          leading: Icon(Icons.map, color: Colors.black),
-          title: widget.isExpanded ? Text('GPS da Beleza') : null,
+          leading: const Icon(Icons.map, color: roxo),
+          title: widget.isExpanded ? const Text('GPS da Beleza') : null,
           onTap: () {
             setState(() {
               isGPSExpanded = !isGPSExpanded;
@@ -68,54 +73,56 @@ class _BaseLateralBarState extends State<BaseLateralBar> {
         ),
         if (widget.isExpanded && isGPSExpanded) ...[
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Análise SWOT'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/swot_analysis');
+              widget.onNavigate('/swot_analysis');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Painel de Objetivos'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/objectives_panel');
+              widget.onNavigate('/goals_panel');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Relatório Mensal'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/monthly_report');
+              widget.onNavigate('/monthly_report');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Plano de Ação'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/action_plan');
+              widget.onNavigate('/action_plan');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Modelo de Negócio'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/business_model');
+              widget.onNavigate('/business_model');
             },
           ),
         ],
+
+        // Menu: Entretenimento
         ListTile(
-          leading: Icon(Icons.movie, color: Colors.black),
-          title: widget.isExpanded ? Text('Entretenimento') : null,
+          leading: const Icon(Icons.movie, color: roxo),
+          title: widget.isExpanded ? const Text('Entretenimento') : null,
           onTap: () {
             setState(() {
               isEntertainmentExpanded = !isEntertainmentExpanded;
@@ -124,27 +131,38 @@ class _BaseLateralBarState extends State<BaseLateralBar> {
         ),
         if (widget.isExpanded && isEntertainmentExpanded) ...[
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: Text('Vídeo de Inovações'),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('TV Star Beauty'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/entertainment');
+              widget.onNavigate('/entertainment/tv_star_beauty');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: Text('Comunidade'),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('News'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/entertainment');
+              widget.onNavigate('/entertainment/news');
+            },
+          ),
+          ListTile(
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('Classificados'),
+            ),
+            onTap: () {
+              widget.onNavigate('/entertainment/classifieds');
             },
           ),
         ],
+
+        // Menu: Busca e Match
         ListTile(
-          leading: Icon(Icons.search, color: Colors.black),
-          title: widget.isExpanded ? Text('Busca e Match') : null,
+          leading: const Icon(Icons.search, color: roxo),
+          title: widget.isExpanded ? const Text('Busca e Match') : null,
           onTap: () {
             setState(() {
               isSearchExpanded = !isSearchExpanded;
@@ -153,21 +171,21 @@ class _BaseLateralBarState extends State<BaseLateralBar> {
         ),
         if (widget.isExpanded && isSearchExpanded) ...[
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Filtrar'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/match');
+              widget.onNavigate('/search/filter');
             },
           ),
           ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
+            title: const Padding(
+              padding: EdgeInsets.only(left: 16.0),
               child: Text('Visualizar Todos'),
             ),
             onTap: () {
-              Navigator.pushNamed(context, '/match');
+              widget.onNavigate('/search/view_all');
             },
           ),
         ],

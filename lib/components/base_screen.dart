@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'base_lateral_bar.dart';
-import '../components/custom_app_bar.dart';
+import 'custom_app_bar.dart';
 import '../global_state.dart';
+import 'package:star_beauty_app/themes/app_themes.dart';
 
 class BaseScreen extends StatefulWidget {
-  final Widget child;
   final String userType;
   final String userId;
   final String? userName;
   final String? userPhotoUrl;
 
   const BaseScreen({
-    Key? key,
-    required this.child,
+    super.key,
     required this.userType,
     required this.userId,
     this.userName,
     this.userPhotoUrl,
-  }) : super(key: key);
+    required Center child,
+  });
 
   @override
   _BaseScreenState createState() => _BaseScreenState();
@@ -25,6 +25,7 @@ class BaseScreen extends StatefulWidget {
 
 class _BaseScreenState extends State<BaseScreen> {
   bool _isSidebarExpanded = true;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   void _toggleSidebar() {
     setState(() {
@@ -46,6 +47,10 @@ class _BaseScreenState extends State<BaseScreen> {
     print('Configurações');
   }
 
+  void _navigateTo(String routeName) {
+    _navigatorKey.currentState?.pushReplacementNamed(routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,26 +64,23 @@ class _BaseScreenState extends State<BaseScreen> {
       body: Row(
         children: [
           AnimatedContainer(
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             width: _isSidebarExpanded ? 250 : 70,
             color: Colors.transparent,
             child: Column(
               children: [
-                // Header com o botão de retração e o título "Menu"
                 Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-                  color: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 16.0),
+                  color: roxo,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Texto "Menu" à esquerda quando expandido
                       if (_isSidebarExpanded)
-                        Text(
+                        const Text(
                           'Menu',
                           style: TextStyle(color: Colors.white, fontSize: 24),
                         ),
-                      // Ícone de retração à direita
                       IconButton(
                         icon: Icon(
                           _isSidebarExpanded
@@ -96,13 +98,34 @@ class _BaseScreenState extends State<BaseScreen> {
                     userType: widget.userType,
                     userId: widget.userId,
                     isExpanded: _isSidebarExpanded,
+                    onNavigate: _navigateTo, // Passa a função de navegação
                   ),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: widget.child,
+            child: Navigator(
+              key: _navigatorKey,
+              onGenerateRoute: (settings) {
+                WidgetBuilder builder;
+                switch (settings.name) {
+                  case '/training_videos':
+                    builder = (BuildContext _) =>
+                        const Center(child: Text('Treinamento'));
+                    break;
+                  case '/swot_analysis':
+                    builder = (BuildContext _) =>
+                        const Center(child: Text('Análise SWOT'));
+                    break;
+                  // Adicione todas as suas outras rotas aqui...
+                  default:
+                    builder = (BuildContext _) =>
+                        const Center(child: Text('Selecione uma opção'));
+                }
+                return MaterialPageRoute(builder: builder);
+              },
+            ),
           ),
         ],
       ),

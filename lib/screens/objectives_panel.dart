@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 
-class ObjectivesPanel extends StatelessWidget {
-  const ObjectivesPanel({Key? key}) : super(key: key);
+class ObjectivesPanel extends StatefulWidget {
+  const ObjectivesPanel({super.key, required String userType});
+
+  @override
+  _ObjectivesPanelState createState() => _ObjectivesPanelState();
+}
+
+class _ObjectivesPanelState extends State<ObjectivesPanel> {
+  List<String> objectives = [
+    'Aumentar o faturamento em 20%',
+    'Conquistar 10 novos clientes',
+    'Reduzir despesas em 5%',
+    'Aumentar a retenção de clientes'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -15,16 +27,15 @@ class ObjectivesPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionTitle('Objetivo do Mês'),
-            _buildObjectiveCard(context, 'Aumentar o faturamento em 20%'),
+            _buildObjectiveCard(context, objectives[0]),
             const SizedBox(height: 16),
             _buildSectionTitle('Objetivos Específicos'),
-            _buildObjectiveCard(context, 'Conquistar 10 novos clientes'),
-            _buildObjectiveCard(context, 'Reduzir despesas em 5%'),
-            _buildObjectiveCard(context, 'Aumentar a retenção de clientes'),
+            ...objectives.sublist(1).map((objective) {
+              return _buildObjectiveCard(context, objective);
+            }),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                // Lógica para adicionar novo objetivo
                 _showAddObjectiveDialog(context);
               },
               child: const Text('Adicionar Novo Objetivo'),
@@ -38,7 +49,7 @@ class ObjectivesPanel extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 
@@ -48,7 +59,7 @@ class ObjectivesPanel extends StatelessWidget {
       child: ListTile(
         title: Text(objective),
         trailing: IconButton(
-          icon: Icon(Icons.edit),
+          icon: const Icon(Icons.edit),
           onPressed: () {
             _showEditObjectiveDialog(context, objective);
           },
@@ -63,29 +74,34 @@ class ObjectivesPanel extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Adicionar Novo Objetivo'),
+          title: const Text('Adicionar Novo Objetivo'),
           content: TextField(
             onChanged: (value) {
               newObjective = value;
             },
-            decoration: InputDecoration(hintText: "Insira o novo objetivo"),
+            decoration:
+                const InputDecoration(hintText: "Insira o novo objetivo"),
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
-              child: Text('Adicionar'),
+              child: const Text('Adicionar'),
               onPressed: () {
-                // Lógica para adicionar o objetivo
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Objetivo "$newObjective" adicionado!')),
-                );
+                if (newObjective.isNotEmpty) {
+                  setState(() {
+                    objectives.add(newObjective);
+                  });
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('Objetivo "$newObjective" adicionado!')),
+                  );
+                }
               },
             ),
           ],
@@ -100,29 +116,32 @@ class ObjectivesPanel extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Editar Objetivo'),
+          title: const Text('Editar Objetivo'),
           content: TextField(
             controller: controller,
-            onChanged: (value) {
-              objective = value;
-            },
-            decoration: InputDecoration(hintText: "Edite o objetivo"),
+            decoration: const InputDecoration(hintText: "Edite o objetivo"),
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
-              child: Text('Salvar'),
+              child: const Text('Salvar'),
               onPressed: () {
-                // Lógica para salvar o objetivo editado
+                setState(() {
+                  int index = objectives.indexOf(objective);
+                  if (index != -1) {
+                    objectives[index] = controller.text;
+                  }
+                });
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text('Objetivo atualizado para "$objective"!')),
+                      content: Text(
+                          'Objetivo atualizado para "${controller.text}"!')),
                 );
               },
             ),

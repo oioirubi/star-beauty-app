@@ -6,7 +6,7 @@ class NotificationsScreen extends StatelessWidget {
   final String userType;
   final String userId;
 
-  NotificationsScreen(
+  const NotificationsScreen(
       {super.key, required this.userType, required this.userId});
 
   void _addSampleNotification(BuildContext context) {

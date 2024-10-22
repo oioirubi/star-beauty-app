@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../global_state.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
@@ -8,15 +7,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onSettings;
 
-  CustomAppBar({
-    Key? key,
+  const CustomAppBar({
+    super.key,
     this.userName,
     this.userPhotoUrl,
     required this.onLogout,
     required this.onEditProfile,
     required this.onSettings,
-  })  : preferredSize = const Size.fromHeight(kToolbarHeight),
-        super(key: key);
+  }) : preferredSize = const Size.fromHeight(kToolbarHeight);
 
   @override
   final Size preferredSize;
@@ -24,12 +22,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.blueAccent, // Definir a cor de fundo
+      backgroundColor:
+          Theme.of(context).colorScheme.primary, // Definir a cor de fundo
       title: Row(
         children: [
-          Icon(Icons.star, color: Colors.yellow),
-          SizedBox(width: 8),
-          Text('StarBeauty'),
+          Icon(Icons.star, color: Theme.of(context).colorScheme.secondary),
+          const SizedBox(width: 8),
+          const Text('StarBeauty'),
         ],
       ),
       actions: [
@@ -38,23 +37,24 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: () {
               Navigator.pushNamed(context, '/login');
             },
-            child: Text('Login', style: TextStyle(color: Colors.white)),
+            child: const Text('Login', style: TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pushNamed(context, '/signup');
             },
-            child: Text('Cadastrar', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Cadastrar', style: TextStyle(color: Colors.white)),
           ),
         ] else ...[
-          Text('Olá, $userName', style: TextStyle(color: Colors.white)),
-          SizedBox(width: 8),
+          Text('Olá, $userName', style: const TextStyle(color: Colors.white)),
+          const SizedBox(width: 8),
           if (userPhotoUrl != null)
             CircleAvatar(
               backgroundImage: NetworkImage(userPhotoUrl!),
             )
           else
-            Icon(Icons.account_circle, color: Colors.white),
+            const Icon(Icons.account_circle, color: Colors.white),
           PopupMenuButton<String>(
             onSelected: (String result) {
               switch (result) {

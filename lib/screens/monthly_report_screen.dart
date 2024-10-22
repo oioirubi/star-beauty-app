@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:star_beauty_app/themes/app_themes.dart';
 
 class MonthlyReportScreen extends StatelessWidget {
-  const MonthlyReportScreen({Key? key, required String userType})
-      : super(key: key);
+  const MonthlyReportScreen({super.key, required String userType});
 
   @override
   Widget build(BuildContext context) {
@@ -11,38 +11,51 @@ class MonthlyReportScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Relatório Mensal'),
-          bottom: const TabBar(
-            isScrollable: true, // Permite rolar se o espaço não for suficiente
-            tabs: [
-              Tab(text: 'Janeiro'),
-              Tab(text: 'Fevereiro'),
-              Tab(text: 'Março'),
-              Tab(text: 'Abril'),
-              Tab(text: 'Maio'),
-              Tab(text: 'Junho'),
-              Tab(text: 'Julho'),
-              Tab(text: 'Agosto'),
-              Tab(text: 'Setembro'),
-              Tab(text: 'Outubro'),
-              Tab(text: 'Novembro'),
-              Tab(text: 'Dezembro'),
-            ],
-          ),
         ),
-        body: TabBarView(
+        body: Column(
           children: [
-            _buildMonthlyReport('Janeiro'),
-            _buildMonthlyReport('Fevereiro'),
-            _buildMonthlyReport('Março'),
-            _buildMonthlyReport('Abril'),
-            _buildMonthlyReport('Maio'),
-            _buildMonthlyReport('Junho'),
-            _buildMonthlyReport('Julho'),
-            _buildMonthlyReport('Agosto'),
-            _buildMonthlyReport('Setembro'),
-            _buildMonthlyReport('Outubro'),
-            _buildMonthlyReport('Novembro'),
-            _buildMonthlyReport('Dezembro'),
+            Container(
+              color: lilas, // Cor lilás para a barra de meses
+              child: const TabBar(
+                isScrollable:
+                    true, // Permite rolar se o espaço não for suficiente
+                indicatorColor: Colors.white, // Cor do indicador da aba ativa
+                labelColor: Colors.white, // Cor do texto ativo
+                unselectedLabelColor: Colors.black, // Cor do texto inativo
+                tabs: [
+                  Tab(text: 'Janeiro'),
+                  Tab(text: 'Fevereiro'),
+                  Tab(text: 'Março'),
+                  Tab(text: 'Abril'),
+                  Tab(text: 'Maio'),
+                  Tab(text: 'Junho'),
+                  Tab(text: 'Julho'),
+                  Tab(text: 'Agosto'),
+                  Tab(text: 'Setembro'),
+                  Tab(text: 'Outubro'),
+                  Tab(text: 'Novembro'),
+                  Tab(text: 'Dezembro'),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildMonthlyReport('Janeiro'),
+                  _buildMonthlyReport('Fevereiro'),
+                  _buildMonthlyReport('Março'),
+                  _buildMonthlyReport('Abril'),
+                  _buildMonthlyReport('Maio'),
+                  _buildMonthlyReport('Junho'),
+                  _buildMonthlyReport('Julho'),
+                  _buildMonthlyReport('Agosto'),
+                  _buildMonthlyReport('Setembro'),
+                  _buildMonthlyReport('Outubro'),
+                  _buildMonthlyReport('Novembro'),
+                  _buildMonthlyReport('Dezembro'),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -85,7 +98,7 @@ class MonthlyReportScreen extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 

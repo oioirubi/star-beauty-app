@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'base_screen.dart';
+import '../components/base_screen.dart';
 
 class TrainingVideos extends StatelessWidget {
   final String userType;
 
-  const TrainingVideos({Key? key, required this.userType}) : super(key: key);
+  const TrainingVideos({super.key, required this.userType});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +12,7 @@ class TrainingVideos extends StatelessWidget {
     return BaseScreen(
       userType: userType,
       userId: 'userId', // Passe o userId correto aqui
-      child: Center(
+      child: const Center(
         child: Text(
           'Aqui estão os vídeos de treinamento!',
           style: TextStyle(fontSize: 24),
