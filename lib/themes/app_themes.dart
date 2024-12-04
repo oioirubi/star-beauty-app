@@ -30,8 +30,7 @@ ThemeData lightTheme() {
     primarySwatch: customRoxoSwatch,
     colorScheme: ColorScheme.fromSwatch(
       primarySwatch: customRoxoSwatch,
-      brightness:
-          Brightness.light, // Adicionado para sincronizar com o tema claro
+      brightness: Brightness.light,
     ).copyWith(
       secondary: amarelo,
       surface: Colors.white,
@@ -44,119 +43,53 @@ ThemeData lightTheme() {
       backgroundColor: roxo,
       foregroundColor: Colors.white,
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.pressed)) {
-            return roxo.withOpacity(0.8);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return roxo.withOpacity(0.9);
-          }
-          return roxo; // Cor padrão
-        }),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+        minimumSize: const Size(150, 50),
+        backgroundColor: roxo,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(100.0),
+        ),
       ),
     ),
-    iconTheme: IconThemeData(
-      color: Colors.blueGrey[900],
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: roxo,
-      foregroundColor: amarelo,
-    ),
-    textTheme: TextTheme(
-      headlineLarge: const TextStyle(
-          fontSize: 32.0, fontWeight: FontWeight.bold, color: roxo),
-      headlineSmall: const TextStyle(
-          fontSize: 24.0, fontWeight: FontWeight.bold, color: amarelo),
-      bodyLarge: TextStyle(fontSize: 16.0, color: Colors.blueGrey[900]),
-      bodySmall: TextStyle(fontSize: 14.0, color: Colors.blueGrey[700]),
-      labelLarge: const TextStyle(
-          fontSize: 14.0, fontWeight: FontWeight.w600, color: amarelo),
-    ),
+    // Estilo de InputDecoration (para TextField/TextFormField)
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.blueGrey[50],
+      fillColor: Colors.grey[100], // Fundo do campo
+      labelStyle: const TextStyle(
+        color: Colors.grey, // Cor do label
+        fontSize: 16,
+      ),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.blueGrey),
-        borderRadius: BorderRadius.circular(10.0),
+        borderSide: const BorderSide(
+          color: Color(0xFFD3D3D3), // Borda padrão
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: roxo),
-        borderRadius: BorderRadius.circular(10.0),
+        borderSide: BorderSide(
+          color: roxo.withOpacity(0.7), // Borda em destaque ao focar
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
       ),
-      hintStyle: TextStyle(color: Colors.blueGrey[500]),
+      errorBorder: OutlineInputBorder(
+        borderSide: const BorderSide(
+          color: Colors.red, // Borda de erro
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderSide: const BorderSide(
+          color: Colors.redAccent, // Borda de erro ao focar
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
     ),
   );
-}
-
-ThemeData darkTheme() {
-  return ThemeData(
-    brightness: Brightness.dark,
-    primarySwatch: customRoxoSwatch,
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: customRoxoSwatch,
-      brightness:
-          Brightness.dark, // Adicionado para sincronizar com o tema escuro
-    ).copyWith(
-      secondary: amarelo,
-      surface: Colors.blueGrey[900], // Blue Grey ao invés de preto
-      onPrimary: branquinho,
-      onSecondary: amarelo,
-      onSurface: Colors.white,
-    ),
-    scaffoldBackgroundColor: Colors.blueGrey[800],
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.blueGrey[900], // Blue Grey escuro
-      foregroundColor: amarelo,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.pressed)) {
-            return roxo.withOpacity(0.8);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return roxo.withOpacity(0.9);
-          }
-          return roxo;
-        }),
-      ),
-    ),
-    iconTheme: const IconThemeData(
-      color: amarelinho,
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: roxo,
-      foregroundColor: amarelo,
-    ),
-    textTheme: const TextTheme(
-      headlineLarge: TextStyle(
-          fontSize: 32.0, fontWeight: FontWeight.bold, color: amarelinho),
-      headlineSmall:
-          TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: lilas),
-      bodyLarge: TextStyle(fontSize: 16.0, color: Colors.white),
-      bodySmall: TextStyle(fontSize: 14.0, color: Colors.white70),
-      labelLarge:
-          TextStyle(fontSize: 14.0, fontWeight: FontWeight.w600, color: roxo),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.blueGrey[800],
-      enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: lilas),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: amarelinho),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      hintStyle: const TextStyle(color: Colors.white70),
-    ),
-  );
-}
-
-void colorgrey({Color color = const Color(0xFF616161)}) {
-  // const Color(0xFF616161) equivale a Colors.grey[700]
-  print(color);
 }

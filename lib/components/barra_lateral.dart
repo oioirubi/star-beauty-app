@@ -14,19 +14,17 @@ class BaseLateralBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250), // Duração da animação
-      width: isExpanded ? 250 : 50, // Largura da barra expandida/retraída
-      height:
-          double.infinity, // Altura total da barra (verticalmente ajustável)
-      color: Colors.black12.withOpacity(0.05), // Cor de fundo da barra lateral
+    return Container(
+      width: isExpanded ? 200 : 50, // Largura dinâmica
+      color: Colors.black12.withOpacity(0.05), // Cor de fundo
       child: Column(
         children: [
-          // Cabeçalho da barra lateral
+          // Cabeçalho da barra lateral (com botão de expansão/retração)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment:
+                  isExpanded ? MainAxisAlignment.end : MainAxisAlignment.center,
               children: [
                 IconButton(
                   icon: Icon(
@@ -38,7 +36,7 @@ class BaseLateralBar extends StatelessWidget {
               ],
             ),
           ),
-          // Menus e submenus sempre abertos
+          // Lista de itens do menu
           Expanded(
             child: ListView(
               children: [
@@ -169,7 +167,15 @@ class BaseLateralBar extends StatelessWidget {
                   context,
                   icon: Icons.favorite, // Ícone para meus matches
                   title: 'Meus matches',
-                  route: '/meus matches',
+                  route: '/meus_matches',
+                  isSubItem: true,
+                  showText: isExpanded,
+                ),
+                _buildMenuItem(
+                  context,
+                  icon: Icons.favorite, // Ícone para meus matches
+                  title: 'Página Exemplo',
+                  route: '/examplepage',
                   isSubItem: true,
                   showText: isExpanded,
                 ),
@@ -187,70 +193,33 @@ class BaseLateralBar extends StatelessWidget {
     required IconData icon,
     required String title,
     required String route,
-    required bool showText, // Controla se o texto deve ser exibido
-    Color backgroundColor = Colors.transparent, // Cor de fundo padrão
-    Color hoverColor = Colors.blue, // Cor ao passar o mouse
-    Color textColor = Colors.black, // Cor do texto
-    Color iconColor = roxo, // Cor do ícone
-    bool isSubItem = false, // Define se é um subitem
+    required bool showText,
+    bool isSubItem = false,
   }) {
-    return StatefulBuilder(
-      builder: (BuildContext context, StateSetter setState) {
-        // Define estado local para hover
-        bool isHovered = false;
-
-        return MouseRegion(
-          onEnter: (_) => setState(() => isHovered = true), // Ativa hover
-          onExit: (_) => setState(() => isHovered = false), // Desativa hover
-          child: GestureDetector(
-            onTap: () => context.go(route), // Navegação
-            child: AnimatedContainer(
-              duration:
-                  const Duration(milliseconds: 200), // Suaviza a transição
-              decoration: BoxDecoration(
-                color: isHovered ? hoverColor : backgroundColor, // Cor dinâmica
-              ),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: showText ? (isSubItem ? 35.0 : 15.0) : 5.0,
-                    ),
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: Icon(
-                        icon,
-                        color: iconColor,
-                      ),
-                    ),
-                  ),
-                  if (showText)
-                    Expanded(
-                      child: AnimatedOpacity(
-                        opacity: showText ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 5.0),
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              color: textColor,
-                              letterSpacing: 1,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+    return GestureDetector(
+      onTap: () => context.go(route),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: roxo,
             ),
-          ),
-        );
-      },
+            if (showText)
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

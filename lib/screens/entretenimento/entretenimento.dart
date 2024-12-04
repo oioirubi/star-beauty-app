@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:star_beauty_app/components/custom_text.dart';
 
 class Entretenimento extends StatelessWidget {
-  final String userType;
-
-  const Entretenimento({super.key, required this.userType});
+  const Entretenimento({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Entretenimento'),
-      ),
-      body: Center(
-        child: Text(userType == 'professional'
-            ? 'Conteúdo de Entretenimento para Profissionais'
-            : 'Conteúdo de Entretenimento para Proprietários'),
-      ),
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          text: 'Bem-vindo ao Starflix!',
+          isTitle: true, // Será formatado como título
+        ),
+        CustomText(
+          text:
+              'Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.Explore conteúdos incríveis sobre beleza e auto-cuidado.',
+        ),
+      ],
     );
   }
 }

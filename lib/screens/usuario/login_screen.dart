@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:star_beauty_app/components/custom_container.dart';
+import 'package:star_beauty_app/themes/app_themes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -58,60 +60,137 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              onChanged: (value) {
-                email = value;
-              },
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              onChanged: (value) {
-                password = value;
-              },
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            // Escolha do Tipo de Usuário (Profissional ou Proprietário)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 400.0, // Limite de largura para o formulário
+          ),
+          child: CustomContainer(
+            title: 'Star Beauty', // Título no topo do container
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // Mantém o tamanho do conteúdo
               children: [
-                ChoiceChip(
-                  label: const Text('Profissional'),
-                  selected: userType == 'professional',
-                  onSelected: (selected) {
-                    setState(() {
-                      userType = 'professional';
-                    });
-                  },
+                const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Proprietário'),
-                  selected: userType == 'owner',
-                  onSelected: (selected) {
-                    setState(() {
-                      userType = 'owner';
-                    });
+                const SizedBox(height: 16),
+                TextField(
+                  onChanged: (value) {
+                    email = value;
                   },
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    filled: true,
+                    fillColor: Colors.grey[100], // Fundo suave para o campo
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!, // Borda sempre visível
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            roxo.withOpacity(0.7), // Borda em destaque ao focar
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  onChanged: (value) {
+                    password = value;
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    filled: true,
+                    fillColor: Colors.grey[100], // Fundo suave para o campo
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!, // Borda sempre visível
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            roxo.withOpacity(0.7), // Borda em destaque ao focar
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 22),
+
+                // Botões Criar Conta e Login
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Botão Criar Conta
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16.0, // Altura do botão
+                          horizontal: 24.0, // Largura do botão
+                        ),
+                        minimumSize:
+                            const Size(150, 50), // Tamanho mínimo (opcional)
+                        foregroundColor: roxo, // Cor do texto
+                        backgroundColor: Colors.grey[200], // Cor de fundo
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(100.0), // Borda arredondada
+                        ),
+                      ),
+                      child: const Text(
+                        'Criar Conta',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+
+                    // Botão Login
+                    ElevatedButton(
+                      onPressed: loginUser,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16.0, // Altura do botão
+                          horizontal: 24.0, // Largura do botão
+                        ),
+                        minimumSize:
+                            const Size(150, 50), // Tamanho mínimo (opcional)
+                        foregroundColor: Colors.white, // Cor do texto
+                        backgroundColor: roxo, // Cor de fundo
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(100.0), // Borda arredondada
+                        ),
+                      ),
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: loginUser,
-              child: const Text('Login'),
-            ),
-          ],
+          ),
         ),
       ),
     );

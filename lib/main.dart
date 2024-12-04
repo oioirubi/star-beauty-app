@@ -28,7 +28,7 @@ class StarBeautyApp extends StatelessWidget {
       routerConfig: router,
       title: 'Star Beauty',
       theme: lightTheme(),
-      darkTheme: darkTheme(),
+      //darkTheme: darkTheme(),
       themeMode: ThemeMode.light,
     );
   }

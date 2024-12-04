@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:star_beauty_app/components/categorias_page.dart';
+import 'package:star_beauty_app/examplepage.dart';
+import 'package:star_beauty_app/screens/busca_e_match/match_cadastro.dart';
+import 'package:star_beauty_app/screens/busca_e_match/meus_maths.dart';
 import 'package:star_beauty_app/screens/treinamento/treinamento.dart';
 
 import 'components/base_tela.dart';
@@ -34,27 +38,12 @@ final GoRouter router = GoRouter(
     ShellRoute(
       builder: (context, state, child) {
         return BaseScreen(
-          userType: '', // Passe valores fixos ou dinâmicos conforme necessário
-          userId: '',
+          userType: 'defaultType', // Ajuste conforme necessário
+          userId: 'defaultId',
           child: child,
         );
       },
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const HomeScreen(),
-        ),
-        GoRoute(
-          path: '/user/:userId',
-          builder: (context, state) {
-            // Captura o parâmetro userId da URL
-            final userId = state.pathParameters['userId']!;
-            return UserHome(
-              userType: 'professional',
-              userId: userId,
-            );
-          },
-        ),
         GoRoute(
           path: '/user_home',
           builder: (context, state) => const UserHome(
@@ -62,13 +51,10 @@ final GoRouter router = GoRouter(
             userId: '',
           ),
         ),
+
         GoRoute(
-          path: '/login',
-          builder: (context, state) => const LoginScreen(),
-        ),
-        GoRoute(
-          path: '/signup',
-          builder: (context, state) => const SignupScreen(),
+          path: '/categorias_page',
+          builder: (context, state) => const CategoriasPage(),
         ),
 
         // Rotas de "Busca e Match"
@@ -82,13 +68,19 @@ final GoRouter router = GoRouter(
             userType: '',
           ),
         ),
+        GoRoute(
+          path: '/meus_matchs',
+          builder: (context, state) => const MeusMaths(userType: 'UserType'),
+        ),
+        GoRoute(
+          path: '/match_cadastro',
+          builder: (context, state) => MatchCadastro(),
+        ),
 
         // Rotas de "Entretenimento"
         GoRoute(
           path: '/entretenimento',
-          builder: (context, state) => const Entretenimento(
-            userType: '',
-          ),
+          builder: (context, state) => const Entretenimento(),
         ),
         GoRoute(
           path: '/classificados',
@@ -112,8 +104,8 @@ final GoRouter router = GoRouter(
           ),
         ),
         GoRoute(
-          path: '/analiseswot',
-          builder: (context, state) => const SWOTAnalysisScreen(),
+          path: '/analise_swot',
+          builder: (context, state) => const AnaliseSWOT(),
         ),
         GoRoute(
           path: '/painel_de_objetivos',
@@ -143,7 +135,7 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: '/starflix',
-          builder: (context, state) => const Starflix(userType: 'UserType'),
+          builder: (context, state) => const Starflix(),
         ),
         GoRoute(
           path: '/meu_aprendizado',
@@ -158,15 +150,33 @@ final GoRouter router = GoRouter(
           ),
         ),
 
-        // Rota para capturar erros
         GoRoute(
-          path: '*',
-          builder: (context, state) => const ErrorScreen(
-            message: 'Página não encontrada',
-            userType: '',
-          ),
-        ),
+          path: '/examplepage',
+          builder: (context, state) => const ExamplePage(),
+        )
       ],
+    ),
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const HomeScreen(),
+    ),
+
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const SignupScreen(),
+    ),
+
+    // Rota para capturar erros
+    GoRoute(
+      path: '*',
+      builder: (context, state) => const ErrorScreen(
+        message: 'Página não encontrada',
+        userType: '',
+      ),
     ),
   ],
 );
