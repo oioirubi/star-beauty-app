@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-class MatchScreen extends StatefulWidget {
+class MatchListagem extends StatefulWidget {
   final String userType; // 'professional' ou 'owner'
 
-  const MatchScreen({super.key, required this.userType});
+  const MatchListagem({super.key, required this.userType});
 
   @override
   _MatchScreenState createState() => _MatchScreenState();
 }
 
-class _MatchScreenState extends State<MatchScreen> {
+class _MatchScreenState extends State<MatchListagem> {
   // Lista de perfis de exemplo
   final List<Map<String, String>> profiles = [
     {

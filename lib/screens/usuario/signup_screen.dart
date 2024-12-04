@@ -1,54 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class LoginScreen extends StatefulWidget {
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _SignupScreenState createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   String email = '';
   String password = '';
   String userType = 'professional'; // Valor padrão para 'professional'
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void loginUser() async {
+  void registerUser() async {
     try {
-      print('Tentando fazer login com: $email');
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      // Cria uma nova conta no Firebase Auth
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      print(
-          'Login realizado com sucesso para usuário: ${userCredential.user!.uid}');
 
-      // Redireciona para a área do usuário após o login
+      // Salva o usuário no Firestore com o tipo de usuário (Profissional ou Proprietário)
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'email': email,
+        'userType': userType, // Salva se é 'professional' ou 'owner'
+      });
+
+      // Redireciona para a área do usuário após o registro
       Navigator.pushNamed(context, '/user', arguments: {
         'userType': userType,
         'userId': userCredential.user!.uid,
       });
     } on FirebaseAuthException catch (e) {
-      print('Erro no login: ${e.code}');
       String errorMessage = '';
 
-      if (e.code == 'wrong-password') {
-        errorMessage = 'Senha incorreta.';
-      } else if (e.code == 'user-not-found') {
-        errorMessage = 'Usuário não encontrado.';
+      if (e.code == 'weak-password') {
+        errorMessage = 'A senha é muito fraca.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'Esse email já está cadastrado.';
       } else if (e.code == 'invalid-email') {
         errorMessage = 'O email fornecido é inválido.';
       } else {
-        errorMessage = 'Erro ao fazer login. Tente novamente.';
+        errorMessage = 'Erro ao registrar. Tente novamente.';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
     } catch (e) {
-      print('Erro desconhecido: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao fazer login. Tente novamente.')),
+        const SnackBar(content: Text('Erro ao registrar. Tente novamente.')),
       );
     }
   }
@@ -57,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('Cadastro'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -106,8 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: loginUser,
-              child: const Text('Login'),
+              onPressed: registerUser,
+              child: const Text('Cadastrar'),
             ),
           ],
         ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class Entertainment extends StatelessWidget {
+class Entretenimento extends StatelessWidget {
   final String userType;
 
-  const Entertainment({super.key, required this.userType});
+  const Entretenimento({super.key, required this.userType});
 
   @override
   Widget build(BuildContext context) {

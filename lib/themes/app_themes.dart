@@ -46,11 +46,13 @@ ThemeData lightTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.pressed))
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.pressed)) {
             return roxo.withOpacity(0.8);
-          if (states.contains(MaterialState.hovered))
+          }
+          if (states.contains(WidgetState.hovered)) {
             return roxo.withOpacity(0.9);
+          }
           return roxo; // Cor padrão
         }),
       ),
@@ -58,7 +60,7 @@ ThemeData lightTheme() {
     iconTheme: IconThemeData(
       color: Colors.blueGrey[900],
     ),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: roxo,
       foregroundColor: amarelo,
     ),
@@ -110,11 +112,13 @@ ThemeData darkTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.pressed))
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.pressed)) {
             return roxo.withOpacity(0.8);
-          if (states.contains(MaterialState.hovered))
+          }
+          if (states.contains(WidgetState.hovered)) {
             return roxo.withOpacity(0.9);
+          }
           return roxo;
         }),
       ),
@@ -122,32 +126,37 @@ ThemeData darkTheme() {
     iconTheme: const IconThemeData(
       color: amarelinho,
     ),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: roxo,
       foregroundColor: amarelo,
     ),
-    textTheme: TextTheme(
-      headlineLarge: const TextStyle(
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
           fontSize: 32.0, fontWeight: FontWeight.bold, color: amarelinho),
-      headlineSmall: const TextStyle(
-          fontSize: 24.0, fontWeight: FontWeight.bold, color: lilas),
-      bodyLarge: const TextStyle(fontSize: 16.0, color: Colors.white),
-      bodySmall: const TextStyle(fontSize: 14.0, color: Colors.white70),
-      labelLarge: const TextStyle(
-          fontSize: 14.0, fontWeight: FontWeight.w600, color: roxo),
+      headlineSmall:
+          TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: lilas),
+      bodyLarge: TextStyle(fontSize: 16.0, color: Colors.white),
+      bodySmall: TextStyle(fontSize: 14.0, color: Colors.white70),
+      labelLarge:
+          TextStyle(fontSize: 14.0, fontWeight: FontWeight.w600, color: roxo),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.blueGrey[800],
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: lilas),
+        borderSide: const BorderSide(color: lilas),
         borderRadius: BorderRadius.circular(10.0),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: amarelinho),
+        borderSide: const BorderSide(color: amarelinho),
         borderRadius: BorderRadius.circular(10.0),
       ),
       hintStyle: const TextStyle(color: Colors.white70),
     ),
   );
+}
+
+void colorgrey({Color color = const Color(0xFF616161)}) {
+  // const Color(0xFF616161) equivale a Colors.grey[700]
+  print(color);
 }
