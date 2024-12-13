@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:star_beauty_app/themes/app_themes.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -14,51 +15,161 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   String email = '';
   String password = '';
+  String confirmPassword = '';
   String userType = 'professional'; // Valor padrão para 'professional'
+  bool hasSelectedUserType = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
+  // Método para registrar o usuário
   void registerUser() async {
+    if (!_formKey.currentState!.validate()) {
+      debugPrint("Formulário inválido.");
+      return;
+    }
+
+    if (!hasSelectedUserType) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione o tipo de usuário!')),
+      );
+      return;
+    }
+
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      // Cria uma nova conta no Firebase Auth
+      debugPrint("Tentando criar usuário com email: $email");
+
+      // Cria o usuário no Firebase Authentication
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: email,
+        email: email.trim(),
         password: password,
       );
 
-      // Salva o usuário no Firestore com o tipo de usuário (Profissional ou Proprietário)
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'email': email,
-        'userType': userType, // Salva se é 'professional' ou 'owner'
-      });
+      final user = userCredential.user;
 
-      // Redireciona para a área do usuário após o registro
-      Navigator.pushNamed(context, '/user', arguments: {
-        'userType': userType,
-        'userId': userCredential.user!.uid,
-      });
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = '';
-
-      if (e.code == 'weak-password') {
-        errorMessage = 'A senha é muito fraca.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'Esse email já está cadastrado.';
-      } else if (e.code == 'invalid-email') {
-        errorMessage = 'O email fornecido é inválido.';
-      } else {
-        errorMessage = 'Erro ao registrar. Tente novamente.';
+      if (user == null) {
+        throw Exception("Erro ao criar usuário no Firebase Authentication.");
       }
 
+      debugPrint("Usuário criado com UID: ${user.uid}");
+
+      // Adiciona os campos ao Firestore
+      await _firestore.collection('users').doc(user.uid).set({
+        "email": email.trim(),
+        "name": "",
+        "adress": "",
+        "profilePicture": "",
+        "starBeautyStars": 0,
+        "userType": userType,
+        "title": "",
+        "bio": "",
+        "location": "",
+        "language": "Português",
+        "createdAt": FieldValue.serverTimestamp(),
+        "lastLogin": FieldValue.serverTimestamp(),
+        // Novos campos do perfil profissional
+        "areaOfExpertise": "",
+        "experienceTime": "",
+        "potentialDescription": "",
+        "professionalExperience": "",
+        "completedCourses": "",
+        "incomeExpectation": "",
+      });
+
+      debugPrint("Dados do usuário salvos no Firestore com sucesso.");
+
+      // Redireciona para a página de perfil do usuário
+      context.go('/user_home', extra: {
+        'userType': userType,
+        'userId': user.uid,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuário registrado com sucesso!')),
+      );
+    } on FirebaseAuthException catch (e) {
+      debugPrint("Erro do FirebaseAuth: ${e.code}");
+
+      String errorMessage;
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'A senha é muito fraca.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Esse email já está cadastrado.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'O email fornecido é inválido.';
+          break;
+        default:
+          errorMessage = 'Erro ao registrar. Tente novamente.';
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
     } catch (e) {
+      debugPrint("Erro geral ao registrar: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao registrar. Tente novamente.')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> deleteCurrentUser() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.delete(); // Exclui o usuário do Firebase Authentication
+        print("Usuário excluído com sucesso.");
+      } else {
+        print("Nenhum usuário autenticado para excluir.");
+      }
+    } on FirebaseAuthException catch (e) {
+      print("Erro ao excluir usuário: ${e.message}");
+      if (e.code == 'requires-recent-login') {
+        print("É necessário fazer login novamente antes de excluir o usuário.");
+      }
+    } catch (e) {
+      print("Erro desconhecido ao excluir o usuário: $e");
+    }
+  }
+
+  Future<void> reauthenticateAndDeleteUser(
+      String email, String password) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print("Nenhum usuário autenticado.");
+        return;
+      }
+
+      // Reautentica o usuário
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Exclui o usuário após a reautenticação
+      await user.delete();
+      print("Usuário reautenticado e excluído com sucesso.");
+    } on FirebaseAuthException catch (e) {
+      print("Erro ao reautenticar/excluir usuário: ${e.message}");
+    } catch (e) {
+      print("Erro desconhecido: $e");
     }
   }
 
@@ -67,203 +178,190 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 435.0, // Limite de largura para o formulário
-            minHeight: 0.0, // Altura mínima necessária para caber tudo
-          ),
+          constraints: const BoxConstraints(maxWidth: 435.0),
           child: CustomContainer(
-            title: 'Star Beauty', // Título no topo do container
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // Mantém o tamanho do conteúdo
-              children: [
-                const Text(
-                  'Cadastro',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  onChanged: (value) {
-                    email = value;
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    filled: true,
-                    fillColor: Colors.grey[100], // Fundo suave para o campo
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!, // Borda sempre visível
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color:
-                            roxo.withOpacity(0.7), // Borda em destaque ao focar
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
+            title: 'Star Beauty',
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Cadastro',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  onChanged: (value) {
-                    password = value;
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Senha',
-                    filled: true,
-                    fillColor: Colors.grey[100], // Fundo suave para o campo
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!, // Borda sempre visível
-                        width: 1,
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    onChanged: (value) => email = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira um email.';
+                      }
+                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                        return 'Insira um email válido.';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey[300]!,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color:
-                            roxo.withOpacity(0.7), // Borda em destaque ao focar
-                        width: 2,
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: roxo.withOpacity(0.7),
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 8),
-
-                TextField(
-                  onChanged: (value) {
-                    password = value;
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Confirmação da Senha',
-                    filled: true,
-                    fillColor: Colors.grey[100], // Fundo suave para o campo
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!, // Borda sempre visível
-                        width: 1,
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    onChanged: (value) => password = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira sua senha.';
+                      }
+                      if (value.length < 6) {
+                        return 'A senha deve ter pelo menos 6 caracteres.';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey[300]!,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color:
-                            roxo.withOpacity(0.7), // Borda em destaque ao focar
-                        width: 2,
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: roxo.withOpacity(0.7),
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
                     ),
+                    obscureText: true,
                   ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 8),
-
-                // Escolha do Tipo de Usuário (Profissional ou Proprietário)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ChoiceChip(
-                      label: const Text(' Eu sou Profissional '),
-                      selected: userType == 'professional',
-                      selectedColor: Colors.black38,
-                      backgroundColor: Colors.grey[200],
-                      labelStyle: TextStyle(
-                        color: userType == 'professional'
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                      onSelected: (selected) {
-                        setState(() {
-                          userType = 'professional';
-                        });
-                      },
-                    ),
-                    ChoiceChip(
-                      label: const Text(' Eu sou Proprietário '),
-                      selected: userType == 'owner',
-                      selectedColor: Colors.black38,
-                      backgroundColor: Colors.grey[200],
-                      labelStyle: TextStyle(
-                        color:
-                            userType == 'owner' ? Colors.white : Colors.black,
-                      ),
-                      onSelected: (selected) {
-                        setState(() {
-                          userType = 'owner';
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
-
-                // Botões Criar Conta e Login
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Botão Criar Conta
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/login');
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16.0, // Altura do botão
-                          horizontal: 24.0, // Largura do botão
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    onChanged: (value) => confirmPassword = value,
+                    validator: (value) {
+                      if (value != password) {
+                        return 'As senhas não coincidem.';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Confirme sua senha',
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey[300]!,
+                          width: 1,
                         ),
-                        minimumSize:
-                            const Size(150, 50), // Tamanho mínimo (opcional)
-                        foregroundColor: roxo, // Cor do texto
-                        backgroundColor: Colors.grey[200], // Cor de fundo
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(100.0), // Borda arredondada
-                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      child: const Text(
-                        'Já tenho uma Conta',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: roxo.withOpacity(0.7),
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-
-                    // Botão Login
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/signup');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16.0, // Altura do botão
-                          horizontal: 24.0, // Largura do botão
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('Eu sou Profissional'),
+                        selected: userType == 'professional',
+                        selectedColor: roxo,
+                        backgroundColor: Colors.grey[200],
+                        labelStyle: TextStyle(
+                          color: userType == 'professional'
+                              ? Colors.white
+                              : Colors.black,
                         ),
-                        minimumSize:
-                            const Size(150, 50), // Tamanho mínimo (opcional)
-                        foregroundColor: Colors.white, // Cor do texto
-                        backgroundColor: roxo, // Cor de fundo
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(100.0), // Borda arredondada
-                        ),
+                        onSelected: (selected) {
+                          setState(() {
+                            userType = 'professional';
+                            hasSelectedUserType = true;
+                          });
+                        },
                       ),
-                      child: const Text(
-                        'Cadastrar',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ChoiceChip(
+                        label: const Text('Eu sou Proprietário'),
+                        selected: userType == 'owner',
+                        selectedColor: roxo,
+                        backgroundColor: Colors.grey[200],
+                        labelStyle: TextStyle(
+                          color:
+                              userType == 'owner' ? Colors.white : Colors.black,
+                        ),
+                        onSelected: (selected) {
+                          setState(() {
+                            userType = 'owner';
+                            hasSelectedUserType = true;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : registerUser,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 24.0,
+                      ),
+                      minimumSize: const Size(150, 50),
+                      foregroundColor: Colors.white,
+                      backgroundColor: roxo,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100.0),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Cadastrar',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

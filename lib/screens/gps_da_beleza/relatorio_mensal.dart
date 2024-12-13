@@ -15,7 +15,7 @@ class MonthlyReportScreen extends StatelessWidget {
         body: Column(
           children: [
             Container(
-              color: lilas, // Cor lilás para a barra de meses
+              color: roxo, // Cor lilás para a barra de meses
               child: const TabBar(
                 isScrollable:
                     true, // Permite rolar se o espaço não for suficiente

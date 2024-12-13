@@ -1,57 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:star_beauty_app/components/custom_text.dart';
-import 'package:star_beauty_app/components/category_box.dart';
+import 'package:star_beauty_app/components/category_model.dart';
 
 class CategoriasPage extends StatelessWidget {
-  const CategoriasPage({super.key});
+  final String title;
+  final String description;
+  final List<CategoryModel> categories;
+
+  const CategoriasPage({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.categories,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const CustomText(
-          text: 'Bem-vindo ao Entretenimento!',
-          isTitle: true,
-        ),
-        const SizedBox(height: 16),
-        const CustomText(
-          text:
-              'Explore categorias e descubra conteúdos incríveis para sua experiência.',
-        ),
-        const SizedBox(height: 24),
-        // O GridView cresce conforme o conteúdo
-        GridView.count(
-          crossAxisCount: 2, // Número de colunas no grid
-          crossAxisSpacing: 16, // Espaço horizontal entre as caixas
-          mainAxisSpacing: 16, // Espaço vertical entre as caixas
-          shrinkWrap: true, // Faz o grid se ajustar ao tamanho do conteúdo
-          physics:
-              const NeverScrollableScrollPhysics(), // Remove a rolagem do grid
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Largura disponível para o grid
+        final screenWidth = constraints.maxWidth;
+
+        // Limites do tamanho dos itens no grid
+        const double minItemSize = 200.0;
+        const double maxItemSize = 250.0;
+
+        // Cálculo dinâmico do tamanho dos itens
+        double itemSize;
+        if (screenWidth < 1080) {
+          // Interpolação gradual entre minItemSize e maxItemSize
+          itemSize = minItemSize +
+              ((screenWidth - 0) / (1080 - 0)) * (maxItemSize - minItemSize);
+          itemSize =
+              itemSize.clamp(minItemSize, maxItemSize); // Garante os limites
+        } else {
+          itemSize = maxItemSize; // Tamanho fixo para telas maiores
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CategoryBox(
-              title: 'Categoria 1',
-              backgroundImage: 'assets/images/imagesalao01.jpg',
-              onTap: () => print('Navegando para Categoria 1'),
+            // Adicionando a capa
+            CategoryModel(
+              title: title,
+              backgroundImage:
+                  'assets/images/imagesalao04.jpg', // Imagem da capa
+              onTap: () => print('Capa clicada!'),
+              isCover: true, // Define como capa
             ),
-            CategoryBox(
-              title: 'Categoria 2',
-              backgroundColor: Colors.blueAccent,
-              onTap: () => print('Navegando para Categoria 2'),
+            const SizedBox(height: 40), // Espaçamento entre a capa e o conteúdo
+
+            // Texto introdutório
+            CustomText(
+              text: description,
+              isTitle: true,
             ),
-            CategoryBox(
-              title: 'Categoria 3',
-              backgroundImage: 'assets/images/imagesalao02.jpg',
-              onTap: () => print('Navegando para Categoria 3'),
+            const SizedBox(height: 16),
+            const CustomText(
+              text:
+                  'Explore categorias e descubra conteúdos incríveis para sua experiência.',
             ),
-            CategoryBox(
-              title: 'Categoria 4',
-              backgroundColor: Colors.green,
-              onTap: () => print('Navegando para Categoria 4'),
+            const SizedBox(height: 24),
+
+            // Grid de categorias
+            GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: (screenWidth ~/ itemSize)
+                    .clamp(1, 4), // Define dinamicamente o número de colunas
+                crossAxisSpacing: 16, // Espaço horizontal entre os itens
+                mainAxisSpacing: 16, // Espaço vertical entre os itens
+                childAspectRatio: 1, // Itens quadrados (1:1)
+              ),
+              shrinkWrap: true, // Faz o grid se ajustar ao tamanho do conteúdo
+              physics:
+                  const NeverScrollableScrollPhysics(), // Remove a rolagem do grid
+              itemCount:
+                  categories.length, // Usa o tamanho da lista de categorias
+              itemBuilder: (context, index) {
+                return SizedBox(
+                  width: itemSize,
+                  height: itemSize,
+                  child: categories[index], // Categoria correspondente
+                );
+              },
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }

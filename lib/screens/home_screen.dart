@@ -15,6 +15,8 @@ class HomeScreen extends StatelessWidget {
         onLogout: () {},
         onEditProfile: () {},
         onSettings: () {},
+        onNotifications: () {},
+        onMessages: () {},
       ),
       body: SingleChildScrollView(
         child: Column(

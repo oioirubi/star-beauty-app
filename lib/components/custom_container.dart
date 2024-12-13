@@ -40,7 +40,7 @@ class CustomContainer extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(40.0),
+          padding: const EdgeInsets.all(50.0),
           child: Column(
             mainAxisSize: MainAxisSize.min, // Ajusta ao conteúdo
             crossAxisAlignment: CrossAxisAlignment.start,

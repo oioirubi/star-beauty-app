@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 // Definição de Cores Personalizadas
 const Color roxo = Color(0xFF472C9B); // Cor #472C9B
-const Color lilas = Color(0xFFB5A0FF); // Cor #B5A0FF
 const Color branquinho = Color(0xFFF5F5F5); // Cor #F5F5F5
 const Color amarelinho = Color(0xFFFFC857); // Cor #FFC857
 const Color amarelo = Color(0xFFFFAA00); // Cor #FFAA00
@@ -30,21 +29,20 @@ ThemeData lightTheme() {
     primarySwatch: customRoxoSwatch,
     colorScheme: ColorScheme.fromSwatch(
       primarySwatch: customRoxoSwatch,
-      brightness: Brightness.light,
     ).copyWith(
       secondary: amarelo,
       surface: Colors.white,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      onSurface: Colors.blueGrey[900],
+      onSurface: Colors.black45,
     ),
     scaffoldBackgroundColor: branquinho,
     appBarTheme: const AppBarTheme(
       backgroundColor: roxo,
       foregroundColor: Colors.white,
     ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
         minimumSize: const Size(150, 50),
         backgroundColor: roxo,
@@ -59,7 +57,7 @@ ThemeData lightTheme() {
       filled: true,
       fillColor: Colors.grey[100], // Fundo do campo
       labelStyle: const TextStyle(
-        color: Colors.grey, // Cor do label
+        color: roxo, // Cor do label
         fontSize: 16,
       ),
       enabledBorder: OutlineInputBorder(

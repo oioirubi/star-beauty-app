@@ -15,13 +15,13 @@ class BaseLateralBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: isExpanded ? 200 : 50, // Largura dinâmica
+      width: isExpanded ? 220 : 45, // Largura dinâmica
       color: Colors.black12.withOpacity(0.05), // Cor de fundo
       child: Column(
         children: [
           // Cabeçalho da barra lateral (com botão de expansão/retração)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 1.0),
             child: Row(
               mainAxisAlignment:
                   isExpanded ? MainAxisAlignment.end : MainAxisAlignment.center,
@@ -166,16 +166,8 @@ class BaseLateralBar extends StatelessWidget {
                 _buildMenuItem(
                   context,
                   icon: Icons.favorite, // Ícone para meus matches
-                  title: 'Meus matches',
-                  route: '/meus_matches',
-                  isSubItem: true,
-                  showText: isExpanded,
-                ),
-                _buildMenuItem(
-                  context,
-                  icon: Icons.favorite, // Ícone para meus matches
-                  title: 'Página Exemplo',
-                  route: '/examplepage',
+                  title: 'Meus matchs',
+                  route: '/meus_matchs',
                   isSubItem: true,
                   showText: isExpanded,
                 ),
@@ -196,29 +188,70 @@ class BaseLateralBar extends StatelessWidget {
     required bool showText,
     bool isSubItem = false,
   }) {
-    return GestureDetector(
-      onTap: () => context.go(route),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: roxo,
-            ),
-            if (showText)
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54),
-                ),
+    final currentRoute = GoRouterState.of(context).uri.toString();
+    final bool isActive = currentRoute == route;
+
+    // Variável para controlar o hover
+    ValueNotifier<bool> isHovered = ValueNotifier(false);
+
+    return MouseRegion(
+      onEnter: (_) => isHovered.value = !isActive, // Hover só se não for ativo
+      onExit: (_) => isHovered.value = false,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: isHovered,
+        builder: (context, hovered, child) {
+          return GestureDetector(
+            onTap: () => context.go(route),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isActive
+                    ? roxo.withOpacity(0.2) // Fundo para item ativo
+                    : hovered
+                        ? roxo.withOpacity(0.1) // Fundo ao passar o mouse
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(0.0),
               ),
-          ],
-        ),
+              padding: EdgeInsets.symmetric(
+                vertical: 8.0,
+                horizontal: showText
+                    ? (isSubItem
+                        ? 30.0
+                        : 10.0) // Espaçamento extra para subitens
+                    : 10.0, // Ícones alinhados ao retrair
+              ),
+              child: Row(
+                mainAxisAlignment: showText
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.start, // Centraliza ícones se retraído
+                children: [
+                  // Ícone sempre visível
+                  Icon(
+                    icon,
+                    color: isActive ? roxo : roxo.withOpacity(0.7),
+                  ),
+                  // Texto visível apenas se a barra estiver expandida
+                  if (showText)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isActive ? Colors.black : Colors.black54,
+                          ),
+                          overflow:
+                              TextOverflow.ellipsis, // Trunca o texto longo
+                          maxLines: 1, // Limita a apenas uma linha
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

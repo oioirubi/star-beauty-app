@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 
 class AnaliseSWOT extends StatefulWidget {
-  const AnaliseSWOT({super.key});
+  const AnaliseSWOT({super.key, required String userType});
 
   @override
   _AnaliseSWOTState createState() => _AnaliseSWOTState();
