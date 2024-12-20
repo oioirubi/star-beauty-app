@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:star_beauty_app/app_router.dart';
 import 'package:star_beauty_app/global_state/firebase_auth_notifier.dart';
-import 'package:star_beauty_app/themes/app_themes.dart';
 import 'firebase_options.dart';
 
 void main() async {
