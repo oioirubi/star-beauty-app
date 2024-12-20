@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/themes/app_themes.dart';
 import '../components/custom_app_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -49,7 +50,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 20.0),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/signup');
+                      GoRouter.of(context).go('/signup');
                     },
                     child: const Text('Cadastre-se Agora'),
                   ),

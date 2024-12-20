@@ -69,7 +69,7 @@ class _BaseScreenState extends State<BaseScreen> {
               : 60.0 *
                   (screenWidth - 850) /
                   (1080 - 850), // Interpolação gradual
-      vertical: 0.0,
+      vertical: 30.0,
     );
 
     return Scaffold(
@@ -114,7 +114,7 @@ class _BaseScreenState extends State<BaseScreen> {
                           alignment: Alignment.topCenter,
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(
-                              maxWidth: 768.0, // Largura máxima do conteúdo
+                              maxWidth: 1080.0, // Largura máxima do conteúdo
                             ),
                             child: widget.child, // Conteúdo dinâmico da rota
                           ),

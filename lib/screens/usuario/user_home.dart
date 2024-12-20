@@ -1,124 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:star_beauty_app/components/custom_text.dart';
-import 'package:star_beauty_app/components/category_model.dart';
 import 'package:go_router/go_router.dart';
+import 'package:star_beauty_app/components/custom_container.dart';
+import 'package:star_beauty_app/components/custom_text.dart';
 
 class UserHome extends StatelessWidget {
-  const UserHome({
-    super.key,
-    required String title,
-    required String description,
-    required List<CategoryModel> categories,
-    required userId,
-    required userType,
-  });
+  const UserHome({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Largura disponível para o grid
-        final screenWidth = constraints.maxWidth;
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Capa
+          _buildCover(),
 
-        // Limites do tamanho dos itens no grid
-        const double minItemSize = 200.0;
-        const double maxItemSize = 250.0;
+          const SizedBox(height: 32),
 
-        // Cálculo dinâmico do tamanho dos itens
-        double itemSize;
-        if (screenWidth < 1080) {
-          // Interpolação gradual entre minItemSize e maxItemSize
-          itemSize = minItemSize +
-              ((screenWidth - 0) / (1080 - 0)) * (maxItemSize - minItemSize);
-          itemSize =
-              itemSize.clamp(minItemSize, maxItemSize); // Garante os limites
-        } else {
-          itemSize = maxItemSize; // Tamanho fixo para telas maiores
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Adicionando a capa
-            CategoryModel(
-              title: 'Olá!',
-              backgroundImage:
-                  'assets/images/imagesalao04.jpg', // Imagem da capa
-              onTap: () => print('Capa clicada!'),
-              isCover: true, // Define como capa
-            ),
-            const SizedBox(height: 40), // Espaçamento entre a capa e o conteúdo
-
-            // Texto introdutório
-            const CustomText(
-              text: 'Seja bem-vindo(a) à Star Beauty!',
-              isTitle: true,
-            ),
-            const SizedBox(height: 16),
-            const CustomText(
+          // Texto introdutório
+          const CustomText(
+            text: 'Seja bem-vindo(a) à Star Beauty!',
+            isBigTitle: true,
+            textColor: Colors.black87,
+          ),
+          const SizedBox(height: 12),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.0),
+            child: CustomText(
               text:
                   'Estamos aqui para transformar a forma como você conecta, cresce e gerencia sua carreira ou negócio no universo da beleza.',
+              textColor: Colors.black54,
             ),
-            const SizedBox(height: 24),
+          ),
+          const SizedBox(height: 32),
 
-            // Grid de categorias
-            GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (screenWidth ~/ itemSize)
-                    .clamp(1, 4), // Define dinamicamente o número de colunas
-                crossAxisSpacing: 16, // Espaço horizontal entre os itens
-                mainAxisSpacing: 16, // Espaço vertical entre os itens
-                childAspectRatio: 1, // Itens quadrados (1:1)
-              ),
-              shrinkWrap: true, // Faz o grid se ajustar ao tamanho do conteúdo
-              physics:
-                  const NeverScrollableScrollPhysics(), // Remove a rolagem do grid
-              itemCount: 4, // Quantidade de categorias
-              itemBuilder: (context, index) {
-                // Exemplo de categorias
-                final categories = [
-                  CategoryModel(
-                    title: ' News',
-                    backgroundImage: 'assets/images/imagesalao01.jpg',
-                    onTap: () {
-                      context.go('/news'); // Navega para a rota usando GoRouter
-                    },
-                  ),
-                  CategoryModel(
-                    title: ' TV Star Beauty',
-                    backgroundColor: Colors.blueAccent,
-                    onTap: () {
-                      context.go(
-                          '/tv_star_beauty'); // Navega para a rota usando GoRouter
-                    },
-                  ),
-                  CategoryModel(
-                    title: ' Classificados',
-                    backgroundImage: 'assets/images/imagesalao02.jpg',
-                    onTap: () {
-                      context.go(
-                          '/classificados'); // Navega para a rota usando GoRouter
-                    },
-                  ),
-                  CategoryModel(
-                    title: 'Categoria 4',
-                    backgroundColor: Colors.green,
-                    onTap: () {
-                      context.go('/news'); // Navega para a rota usando GoRouter
-                    },
-                  ),
-                ];
+          // Grid de Containers
+          _buildGrid(context),
+        ],
+      ),
+    );
+  }
 
-                return SizedBox(
-                  width: itemSize,
-                  height: itemSize,
-                  child: categories[index], // Categoria correspondente
-                );
-              },
-            ),
-          ],
-        );
+  // Capa com texto "Olá!"
+  Widget _buildCover() {
+    return CustomContainer.cover(
+        backgroundImage: 'assets/images/imagesalao04.jpg', title: 'Olá');
+  }
+
+  // Grid de Containers com navegação
+  Widget _buildGrid(BuildContext context) {
+    final List<Map<String, dynamic>> items = [
+      {
+        'title': 'News',
+        'image': 'assets/images/imagesalao01.jpg',
+        'route': '/news',
       },
+      {
+        'title': 'TV Star Beauty',
+        'image': 'assets/images/imagesalao02.jpg',
+        'route': '/tv_star_beauty',
+      },
+      {
+        'title': 'Classificados',
+        'image': 'assets/images/imagesalao03.jpg',
+        'route': '/classificados',
+      },
+      {
+        'title': 'Categoria 4',
+        'image': 'assets/images/imagesalao04.jpg',
+        'route': '/news',
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.0,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          return CustomContainer.category(
+            title: items[index]['title'],
+            backgroundImage: items[index]['image'],
+            onTap: () {
+              context.go(items[index]['route']);
+            },
+          );
+        },
+      ),
     );
   }
 }

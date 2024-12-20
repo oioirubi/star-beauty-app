@@ -1,32 +1,29 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:star_beauty_app/components/categorias_page.dart';
-import 'package:star_beauty_app/components/category_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:star_beauty_app/components/custom_base_screen.dart';
 import 'package:star_beauty_app/global_state/firebase_auth_notifier.dart';
 import 'package:star_beauty_app/screens/busca_e_match/match_cadastro.dart';
 import 'package:star_beauty_app/screens/busca_e_match/meus_maths.dart';
 import 'package:star_beauty_app/screens/error_screen.dart';
-import 'package:star_beauty_app/screens/treinamento/treinamento.dart';
 import 'package:star_beauty_app/screens/usuario/perfil_usuario.dart';
 
-import 'components/base_tela.dart';
 import '/screens/home_screen.dart';
 
 import 'screens/usuario/user_home.dart';
 import 'screens/usuario/login_screen.dart';
 import 'screens/usuario/signup_screen.dart';
 
-import 'screens/busca_e_match/busca_e_match.dart';
 import 'screens/busca_e_match/match_listagem.dart';
 
-import 'screens/entretenimento/entretenimento.dart';
 import 'screens/entretenimento/classificados.dart';
 import 'screens/entretenimento/news.dart';
 import 'screens/entretenimento/tv_star_beauty.dart';
 
 import 'screens/gps_da_beleza/gps_da_beleza.dart';
-import 'screens/gps_da_beleza/swot_analysis_screen.dart';
+import 'screens/gps_da_beleza/swot_analysis_page.dart';
 import 'screens/gps_da_beleza/painel_de_objetivos.dart';
 import 'screens/gps_da_beleza/relatorio_mensal.dart';
 import 'screens/gps_da_beleza/plano_de_acao.dart';
@@ -48,57 +45,67 @@ GoRouter createRouter(BuildContext context) {
         builder: (context, state) => const HomeScreen(),
       ),
       ShellRoute(
-          builder: (context, state, child) => BaseScreen(
-                userType:
-                    authNotifier.currentUser != null ? 'Professional' : 'Guest',
-                userId: authNotifier.currentUser?.uid ?? '',
-                child: child,
-              ),
+          builder: (context, state, child) {
+            final currentUser = FirebaseAuth.instance.currentUser;
+
+            // Se o usuário não está logado, exiba algo ou um erro
+            if (currentUser == null) {
+              return const Center(child: Text("Usuário não autenticado"));
+            }
+
+            // Use FutureBuilder para carregar os dados do Firestore
+            return FutureBuilder(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(currentUser.uid)
+                  .get(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(
+                      child: Text("Erro ao carregar dados do usuário"));
+                }
+
+                // Pegue os dados do Firestore
+                final userData = snapshot.data?.data() ?? {};
+                final name =
+                    userData['name'] ?? currentUser.displayName ?? "Usuário";
+                final profilePicture =
+                    userData['profilePicture'] ?? currentUser.photoURL;
+
+                // Debug prints
+                print('userName: $name');
+                print('userPhotoUrl: $profilePicture');
+
+                // Retorne a CustomizableBaseScreen
+                return CustomizableBaseScreen(
+                  userName: name,
+                  userPhotoUrl: profilePicture,
+                  child: child,
+                );
+              },
+            );
+          },
           routes: [
             GoRoute(
               path: '/user_home',
-              builder: (context, state) => UserHome(
-                userId: authNotifier.currentUser?.uid ?? '',
-                userType: 'defaultType',
-                title: '',
-                description: '',
-                categories: const [],
-              ),
+              builder: (context, state) {
+                return const UserHome();
+              },
             ),
             GoRoute(
               path: '/categorias_page',
-              builder: (context, state) {
-                final List<CategoryModel> categories =
-                    (state.extra as List<dynamic>?)
-                            ?.map((item) => item as CategoryModel)
-                            .toList() ??
-                        [];
-
-                return CategoriasPage(
-                  title: state.uri.queryParameters['title'] ?? '',
-                  description: state.uri.queryParameters['description'] ?? '',
-                  categories: categories,
-                );
-              },
+              builder: (context, state) =>
+                  const MeusMaths(userType: 'UserType'),
             ),
-
             // Rotas de "Busca e Match"
             GoRoute(
               path: '/busca_e_match',
-              builder: (context, state) {
-                // Verifica e converte a lista de categorias para o tipo correto
-                final List<CategoryModel> categories =
-                    (state.extra as List<dynamic>?)
-                            ?.map((item) => item as CategoryModel)
-                            .toList() ??
-                        [];
-
-                return BuscaEMatch(
-                  title: state.uri.queryParameters['title'] ?? '',
-                  description: state.uri.queryParameters['description'] ?? '',
-                  categories: categories,
-                );
-              },
+              builder: (context, state) =>
+                  const MeusMaths(userType: 'UserType'),
             ),
             GoRoute(
               path: '/listagem',
@@ -119,20 +126,8 @@ GoRouter createRouter(BuildContext context) {
             // Rotas de "Entretenimento"
             GoRoute(
               path: '/entretenimento',
-              builder: (context, state) {
-                // Verifica e converte a lista de categorias para o tipo correto
-                final List<CategoryModel> categories =
-                    (state.extra as List<dynamic>?)
-                            ?.map((item) => item as CategoryModel)
-                            .toList() ??
-                        [];
-
-                return Entretenimento(
-                  title: state.uri.queryParameters['title'] ?? '',
-                  description: state.uri.queryParameters['description'] ?? '',
-                  categories: categories,
-                );
-              },
+              builder: (context, state) =>
+                  const MeusMaths(userType: 'UserType'),
             ),
             GoRoute(
               path: '/classificados',
@@ -152,27 +147,13 @@ GoRouter createRouter(BuildContext context) {
             // Rotas de "GPS da Beleza"
             GoRoute(
               path: '/gps_da_beleza',
-              builder: (context, state) {
-                // Verifica e converte a lista de categorias para o tipo correto
-                final List<CategoryModel> categories =
-                    (state.extra as List<dynamic>?)
-                            ?.map((item) => item as CategoryModel)
-                            .toList() ??
-                        [];
-
-                return GpsDaBeleza(
-                  title: state.uri.queryParameters['title'] ?? '',
-                  description: state.uri.queryParameters['description'] ?? '',
-                  categories: categories,
-                  userType: '',
-                );
-              },
+              builder: (context, state) => const GpsDaBeleza(),
             ),
             GoRoute(
               path: '/analise_swot',
-              builder: (context, state) =>
-                  const AnaliseSWOT(userType: 'UserType'),
+              builder: (context, state) => const AnaliseSWOTPage(),
             ),
+
             GoRoute(
               path: '/painel_de_objetivos',
               builder: (context, state) =>
@@ -197,20 +178,8 @@ GoRouter createRouter(BuildContext context) {
             // Rotas de "Treinamento"
             GoRoute(
               path: '/treinamento',
-              builder: (context, state) {
-                // Verifica e converte a lista de categorias para o tipo correto
-                final List<CategoryModel> categories =
-                    (state.extra as List<dynamic>?)
-                            ?.map((item) => item as CategoryModel)
-                            .toList() ??
-                        [];
-
-                return Treinamento(
-                  title: state.uri.queryParameters['title'] ?? '',
-                  description: state.uri.queryParameters['description'] ?? '',
-                  categories: categories,
-                );
-              },
+              builder: (context, state) =>
+                  const MeusMaths(userType: 'UserType'),
             ),
             GoRoute(
               path: '/starflix',

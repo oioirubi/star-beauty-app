@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 
 // Definição de Cores Personalizadas
-const Color roxo = Color(0xFF472C9B); // Cor #472C9B
+const Color roxo = Color(0xFF6643AA); // Cor #472C9B
 const Color branquinho = Color(0xFFF5F5F5); // Cor #F5F5F5
-const Color amarelinho = Color(0xFFFFC857); // Cor #FFC857
 const Color amarelo = Color(0xFFFFAA00); // Cor #FFAA00
 
 // MaterialColor baseado na cor primária
 Map<int, Color> roxoSwatch = {
-  50: const Color.fromRGBO(71, 44, 155, .1),
-  100: const Color.fromRGBO(71, 44, 155, .2),
-  200: const Color.fromRGBO(71, 44, 155, .3),
-  300: const Color.fromRGBO(71, 44, 155, .4),
-  400: const Color.fromRGBO(71, 44, 155, .5),
-  500: const Color.fromRGBO(71, 44, 155, .6),
-  600: const Color.fromRGBO(71, 44, 155, .7),
-  700: const Color.fromRGBO(71, 44, 155, .8),
-  800: const Color.fromRGBO(71, 44, 155, .9),
-  900: const Color.fromRGBO(71, 44, 155, 1),
+  50: const Color(0xFFE8E1F2),
+  100: const Color(0xFFD1C4E6),
+  200: const Color(0xFFB399D9),
+  300: const Color(0xFF9570CC),
+  400: const Color(0xFF7B50C0),
+  500: const Color(0xFF6643AA), // Cor padrão
+  600: const Color(0xFF5B3B97),
+  700: const Color(0xFF4F3285),
+  800: const Color(0xFF442973),
+  900: const Color(0xFF311E54),
 };
 
 MaterialColor customRoxoSwatch = MaterialColor(0xFF472C9B, roxoSwatch);

@@ -109,168 +109,183 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400.0),
-          child: CustomContainer(
-            title: 'Star Beauty',
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    onChanged: (value) => email = value,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira seu email.';
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                          .hasMatch(value)) {
-                        return 'Insira um email válido.';
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey[300]!,
-                          width: 1,
+    return LayoutBuilder(builder: (context, constraints) {
+      final maxWidth = constraints.maxWidth;
+
+      return Scaffold(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: maxWidth > 400 ? 400 : maxWidth * 0.9,
+            ),
+            child: CustomContainer(
+              title: 'Star Beauty',
+              contentPadding: const EdgeInsets.all(50.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Align(
+                      alignment:
+                          Alignment.centerLeft, // Alinha o texto à direita
+                      child: Text(
+                        'Login',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: roxo.withOpacity(0.7),
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    onChanged: (value) => password = value,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira sua senha.';
-                      } else if (value.length < 6) {
-                        return 'A senha deve ter pelo menos 6 caracteres.';
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Senha',
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey[300]!,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: roxo.withOpacity(0.7),
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 22),
-                  GestureDetector(
-                    onTap: resetPassword,
-                    child: const Text(
-                      'Esqueceu a senha?',
-                      style: TextStyle(
-                        color: roxo,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/signup');
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16.0,
-                            horizontal: 24.0,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      onChanged: (value) => email = value,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, insira seu email.';
+                        } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                            .hasMatch(value)) {
+                          return 'Insira um email válido.';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
                           ),
-                          minimumSize: const Size(150, 50),
-                          foregroundColor: roxo,
-                          backgroundColor: Colors.grey[200],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100.0),
-                          ),
+                          borderRadius: BorderRadius.circular(8.0),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: roxo.withOpacity(0.7),
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      onChanged: (value) => password = value,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, insira sua senha.';
+                        } else if (value.length < 6) {
+                          return 'A senha deve ter pelo menos 6 caracteres.';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Senha',
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: roxo.withOpacity(0.7),
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment:
+                          Alignment.centerRight, // Alinha o texto à direita
+                      child: GestureDetector(
+                        onTap: resetPassword,
                         child: const Text(
-                          'Criar Conta',
+                          'Esqueceu a senha?',
                           style: TextStyle(
-                            fontSize: 16,
+                            color: roxo,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : loginUser,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16.0,
-                            horizontal: 24.0,
+                    ),
+                    const SizedBox(height: 22),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            GoRouter.of(context).go('/signup');
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                              horizontal: 24.0,
+                            ),
+                            minimumSize: const Size(150, 50),
+                            foregroundColor: roxo,
+                            backgroundColor: Colors.grey[200],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100.0),
+                            ),
                           ),
-                          minimumSize: const Size(150, 50),
-                          foregroundColor: Colors.white,
-                          backgroundColor: roxo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100.0),
+                          child: const Text(
+                            'Criar Conta',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : loginUser,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                              horizontal: 24.0,
+                            ),
+                            minimumSize: const Size(150, 50),
+                            foregroundColor: Colors.white,
+                            backgroundColor: roxo,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100.0),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

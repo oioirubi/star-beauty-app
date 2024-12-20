@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:star_beauty_app/components/custom_text.dart';
+import 'package:go_router/go_router.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
@@ -29,23 +31,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Theme.of(context).colorScheme.primary,
       title: Row(
         children: [
-          Icon(Icons.star, color: Theme.of(context).colorScheme.secondary),
+          Image.asset(
+            'assets/images/star.png', // Imagem do logo
+            height: 35,
+          ),
           const SizedBox(width: 8),
-          const Text('StarBeauty'),
+          const CustomText(
+            text: 'Star Beauty', // Texto que deseja exibir
+            isTitle: true, // Configura como título grande
+            textColor: Colors.white, // Cor opcional para o texto
+            letterSpacing: 1.0, // Espaçamento entre as letras
+          ),
         ],
       ),
       actions: [
         if (userName == null) ...[
-          // Botões para não logados
           TextButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/login');
+              GoRouter.of(context).go('/login');
             },
             child: const Text('Login', style: TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/signup');
+              GoRouter.of(context).go('/signup');
             },
             child:
                 const Text('Cadastrar', style: TextStyle(color: Colors.white)),
@@ -54,11 +63,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           // Ícones para logados
           IconButton(
             icon: const Icon(Icons.notifications),
+            color: Colors.white,
             onPressed: onNotifications,
             tooltip: 'Notificações',
           ),
           IconButton(
             icon: const Icon(Icons.message),
+            color: Colors.white,
             onPressed: onMessages,
             tooltip: 'Mensagens',
           ),

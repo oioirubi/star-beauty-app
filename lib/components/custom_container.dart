@@ -2,59 +2,173 @@ import 'package:flutter/material.dart';
 import 'package:star_beauty_app/components/custom_text.dart';
 
 class CustomContainer extends StatelessWidget {
-  final String? title; // Título opcional do container
-  final String? content; // Conteúdo opcional
-  final Color backgroundColor; // Cor de fundo
-  final double borderRadius; // Raio das bordas
-  final double elevation; // Intensidade da sombra
-  final Color borderColor; // Cor da borda
-  final double borderWidth; // Largura da borda
-  final Widget? child; // Widget filho (child)
-  final EdgeInsets contentPadding; // Espaçamento interno do conteúdo
+  final Widget? child;
+  final String? title;
+  final Color backgroundColor;
+  final bool hasGradient;
+  final String? backgroundImage;
+  final double borderRadius;
+  final EdgeInsets contentPadding;
+  final Color borderColor;
+  final double borderWidth;
+  final double elevation;
+  final VoidCallback? onTap;
 
   const CustomContainer({
     super.key,
+    this.child,
     this.title,
-    this.content,
     this.backgroundColor = Colors.white,
+    this.hasGradient = false,
+    this.backgroundImage,
     this.borderRadius = 15.0,
-    this.elevation = 4.0,
+    this.contentPadding = const EdgeInsets.all(16.0),
     this.borderColor = const Color(0xFFC4C4C4),
     this.borderWidth = 1.0,
-    this.child,
-    this.contentPadding = const EdgeInsets.all(40.0),
+    this.elevation = 4.0,
+    this.onTap,
   });
+
+  // Método para Container de Categoria
+  static Widget category({
+    required String title,
+    required String backgroundImage,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        onEnter: (_) {},
+        onExit: (_) {},
+        child: Container(
+          height: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            image: DecorationImage(
+              image: AssetImage(backgroundImage),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Gradiente
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  gradient: const LinearGradient(
+                    colors: [Colors.black, Colors.transparent],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                ),
+              ),
+              // Título
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: CustomText(
+                    text: title,
+                    isTitle: true,
+                    textColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Método para Container de Capa
+  static Widget cover({
+    required String title,
+    required String backgroundImage,
+  }) {
+    return Container(
+      height: 300, // Altura ajustada
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        image: DecorationImage(
+          image: AssetImage(backgroundImage),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Gradiente
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: const LinearGradient(
+                colors: [Colors.black, Colors.transparent],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+            ),
+          ),
+          // Título
+          Center(
+            child: CustomText(
+              text: title,
+              isBigTitle: true,
+              textColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Método para Container Padrão (default)
+  static Widget defaultContainer({
+    required String title,
+    required String content,
+    EdgeInsets? padding,
+  }) {
+    return Container(
+      padding: padding ?? const EdgeInsets.all(30.0), // Padding padrão
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFC4C4C4),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            text: title,
+            isTitle: true,
+          ),
+          const SizedBox(height: 8.0),
+          CustomText(
+            text: content,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      elevation: 4.0,
-      borderRadius: BorderRadius.circular(15.0),
+      elevation: elevation,
+      borderRadius: BorderRadius.circular(borderRadius),
       child: Container(
+        padding: contentPadding,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15.0),
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
-            color: const Color(0xFFC4C4C4),
-            width: 1.0,
+            color: borderColor,
+            width: borderWidth,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(50.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Ajusta ao conteúdo
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (title != null)
-                CustomText(
-                  text: title!,
-                  isTitle: true,
-                ),
-              if (title != null) const SizedBox(height: 16),
-              if (child != null) child!,
-            ],
-          ),
-        ),
+        child: child,
       ),
     );
   }
