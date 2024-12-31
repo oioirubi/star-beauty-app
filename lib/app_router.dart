@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:star_beauty_app/components/custom_base_screen.dart';
 import 'package:star_beauty_app/global_state/firebase_auth_notifier.dart';
-import 'package:star_beauty_app/screens/busca_e_match/match_cadastro.dart';
+
 import 'package:star_beauty_app/screens/busca_e_match/meus_maths.dart';
 import 'package:star_beauty_app/screens/error_screen.dart';
 import 'package:star_beauty_app/screens/usuario/perfil_usuario.dart';
@@ -96,6 +96,12 @@ GoRouter createRouter(BuildContext context) {
                 return const UserHome();
               },
             ),
+
+            GoRoute(
+              path: '/perfil_usuario',
+              builder: (context, state) => const UserProfilePage(),
+            ),
+
             GoRoute(
               path: '/categorias_page',
               builder: (context, state) =>
@@ -117,10 +123,6 @@ GoRouter createRouter(BuildContext context) {
               path: '/meus_matchs',
               builder: (context, state) =>
                   const MeusMaths(userType: 'UserType'),
-            ),
-            GoRoute(
-              path: '/match_cadastro',
-              builder: (context, state) => const MatchCadastro(),
             ),
 
             // Rotas de "Entretenimento"
@@ -151,7 +153,7 @@ GoRouter createRouter(BuildContext context) {
             ),
             GoRoute(
               path: '/analise_swot',
-              builder: (context, state) => const AnaliseSWOTPage(),
+              builder: (context, state) => const SwotAnalysisPage(),
             ),
 
             GoRoute(
@@ -198,10 +200,6 @@ GoRouter createRouter(BuildContext context) {
               ),
             ),
           ]),
-      GoRoute(
-        path: '/perfil_usuario',
-        builder: (context, state) => const UserProfilePage(),
-      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),

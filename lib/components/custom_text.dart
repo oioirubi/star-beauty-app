@@ -21,7 +21,7 @@ class CustomText extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: isBigTitle ? 24.0 : (isTitle ? 20.0 : 18.0),
+        fontSize: isBigTitle ? 32.0 : (isTitle ? 20.0 : 18.0),
         fontWeight: isBigTitle
             ? FontWeight.bold
             : (isTitle ? FontWeight.bold : FontWeight.w600),

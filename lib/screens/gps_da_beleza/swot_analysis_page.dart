@@ -1,67 +1,221 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:star_beauty_app/components/custom_base_screen.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
-import 'package:star_beauty_app/components/custom_text.dart';
 
-class AnaliseSWOTPage extends StatelessWidget {
-  const AnaliseSWOTPage({super.key});
+class SwotAnalysisPage extends StatefulWidget {
+  const SwotAnalysisPage({super.key});
+
+  @override
+  _SwotAnalysisPageState createState() => _SwotAnalysisPageState();
+}
+
+class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
+  final List<String> forces = ['Tarefa 1', 'Tarefa 2'];
+  final List<String> weaknesses = ['Tarefa 3'];
+  final List<String> opportunities = [];
+  final List<String> threats = [];
+
+  String? activeEditingCard;
+  String? activeEditingColumn;
+  bool isAddingCard = false;
+
+  final FocusNode focusNode = FocusNode();
+
+  /// Move um cartão entre colunas
+  void onItemDropped(String data, List<String> targetBoard) {
+    setState(() {
+      forces.remove(data);
+      weaknesses.remove(data);
+      opportunities.remove(data);
+      threats.remove(data);
+      targetBoard.add(data);
+    });
+  }
+
+  /// Adiciona um novo cartão
+  void addNewCard(List<String> targetBoard) {
+    if (isAddingCard) return;
+    setState(() {
+      isAddingCard = true;
+      targetBoard.add('');
+      activeEditingCard = '';
+    });
+  }
+
+  /// Cancela um novo cartão
+  void cancelNewCard(List<String> targetBoard) {
+    setState(() {
+      isAddingCard = false;
+      targetBoard.remove('');
+      activeEditingCard = null;
+    });
+  }
+
+  /// Salva ou descarta edições
+  void saveCard(List<String> targetBoard, int index, String newContent) {
+    setState(() {
+      if (newContent.trim().isEmpty) {
+        targetBoard.removeAt(index);
+      } else {
+        targetBoard[index] = newContent.trim();
+      }
+      activeEditingCard = null;
+      isAddingCard = false;
+    });
+  }
+
+  /// Salva ou descarta com clique fora
+  void handleOutsideClick() {
+    if (activeEditingCard != null || isAddingCard) {
+      setState(() {
+        activeEditingCard = null;
+        isAddingCard = false;
+        forces.remove('');
+        weaknesses.remove('');
+        opportunities.remove('');
+        threats.remove('');
+      });
+    }
+    focusNode.unfocus();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> swotItems = [
-      {
-        'title': 'Forças',
-        'image': 'assets/images/forcas.jpg',
-        'route': '/forcas',
-      },
-      {
-        'title': 'Fraquezas',
-        'image': 'assets/images/fraquezas.jpg',
-        'route': '/fraquezas',
-      },
-      {
-        'title': 'Oportunidades',
-        'image': 'assets/images/oportunidades.jpg',
-        'route': '/oportunidades',
-      },
-      {
-        'title': 'Ameaças',
-        'image': 'assets/images/ameacas.jpg',
-        'route': '/ameacas',
-      },
-    ];
+    return GestureDetector(
+      onTap: handleOutsideClick,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(child: _buildBoard('Forças', forces, Colors.blue)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child:
+                          _buildBoard('Fraquezas', weaknesses, Colors.orange)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                      child: _buildBoard(
+                          'Oportunidades', opportunities, Colors.green)),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildBoard('Ameaças', threats, Colors.red)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-    return CustomizableBaseScreen(
-      userName: "Usuário",
-      userPhotoUrl: null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CustomText(
-              text: "Análise SWOT",
-              isBigTitle: true,
-              textColor: Colors.black87,
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+  Widget _buildBoard(String title, List<String> board, Color lineColor) {
+    return CustomContainer.trelloBoard(
+      title: title,
+      height: 500,
+      children: [
+        for (int i = 0; i < board.length; i++) ...[
+          DragTarget<String>(
+            onWillAcceptWithDetails: (data) => true,
+            onAcceptWithDetails: (data) => onItemDropped(data as String, board),
+            builder: (context, candidateData, rejectedData) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: candidateData.isNotEmpty ? 30 : 0,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: candidateData.isNotEmpty
+                      ? Colors.grey[300]
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                itemCount: swotItems.length,
-                itemBuilder: (context, index) {
-                  final item = swotItems[index];
-                  return CustomContainer.category(
-                    backgroundImage: item['image'],
-                    title: item['title'],
-                    onTap: () => context.go(item['route']),
-                  );
+              );
+            },
+          ),
+          _buildEditableCard(board, i, lineColor),
+        ],
+        DragTarget<String>(
+          onWillAcceptWithDetails: (data) => true,
+          onAcceptWithDetails: (data) => onItemDropped(data as String, board),
+          builder: (context, candidateData, rejectedData) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: candidateData.isNotEmpty ? 30 : 0,
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: candidateData.isNotEmpty
+                    ? Colors.grey[300]
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            );
+          },
+        ),
+        GestureDetector(
+          onTap: () {
+            handleOutsideClick();
+            addNewCard(board);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '+ Adicionar cartão',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableCard(List<String> board, int index, Color lineColor) {
+    final TextEditingController controller =
+        TextEditingController(text: board[index]);
+
+    return GestureDetector(
+      onTap: () {}, // Evita conflitos com eventos externos
+      child: Focus(
+        focusNode: focusNode,
+        onFocusChange: (hasFocus) {
+          if (!hasFocus && activeEditingCard == board[index]) {
+            saveCard(board, index, controller.text);
+          }
+        },
+        child: Stack(
+          children: [
+            CustomContainer.editableCard(
+              key: ValueKey(board[index]),
+              content: board[index],
+              onUpdate: (newContent) => saveCard(board, index, newContent),
+              lineColor: lineColor,
+              isEditing: activeEditingCard == board[index],
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    activeEditingCard = board[index];
+                    focusNode.requestFocus();
+                  });
                 },
+                child: const Icon(Icons.edit, size: 18, color: Colors.grey),
               ),
             ),
           ],

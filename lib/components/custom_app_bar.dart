@@ -84,7 +84,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             onSelected: (String result) {
               switch (result) {
-                case 'view_profile':
+                case 'perfil_usuario':
                   print('Meu perfil');
                   break;
                 case 'edit_profile':
