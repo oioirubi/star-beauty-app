@@ -21,13 +21,13 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
   final FocusNode focusNode = FocusNode();
 
   /// Move um cartão entre colunas
-  void onItemDropped(String data, List<String> targetBoard) {
+  void onItemDropped(
+      String data, List<String> targetBoard, List<String> sourceBoard) {
     setState(() {
-      forces.remove(data);
-      weaknesses.remove(data);
-      opportunities.remove(data);
-      threats.remove(data);
-      targetBoard.add(data);
+      if (sourceBoard.contains(data)) {
+        sourceBoard.remove(data); // Remove da coluna de origem
+      }
+      targetBoard.add(data); // Adiciona à nova coluna
     });
   }
 
@@ -120,8 +120,22 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
       children: [
         for (int i = 0; i < board.length; i++) ...[
           DragTarget<String>(
-            onWillAcceptWithDetails: (data) => true,
-            onAcceptWithDetails: (data) => onItemDropped(data as String, board),
+            onWillAccept: (data) => true,
+            onAccept: (data) {
+              // Detecta a origem e move o item
+              List<List<String>> allBoards = [
+                forces,
+                weaknesses,
+                opportunities,
+                threats
+              ];
+              for (var sourceBoard in allBoards) {
+                if (sourceBoard.contains(data)) {
+                  onItemDropped(data, board, sourceBoard);
+                  break;
+                }
+              }
+            },
             builder: (context, candidateData, rejectedData) {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -139,8 +153,21 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
           _buildEditableCard(board, i, lineColor),
         ],
         DragTarget<String>(
-          onWillAcceptWithDetails: (data) => true,
-          onAcceptWithDetails: (data) => onItemDropped(data as String, board),
+          onWillAccept: (data) => true,
+          onAccept: (data) {
+            List<List<String>> allBoards = [
+              forces,
+              weaknesses,
+              opportunities,
+              threats
+            ];
+            for (var sourceBoard in allBoards) {
+              if (sourceBoard.contains(data)) {
+                onItemDropped(data, board, sourceBoard);
+                break;
+              }
+            }
+          },
           builder: (context, candidateData, rejectedData) {
             return AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -188,7 +215,12 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
         TextEditingController(text: board[index]);
 
     return GestureDetector(
-      onTap: () {}, // Evita conflitos com eventos externos
+      onTap: () {
+        setState(() {
+          activeEditingCard = board[index];
+          focusNode.requestFocus();
+        });
+      },
       child: Focus(
         focusNode: focusNode,
         onFocusChange: (hasFocus) {
@@ -196,29 +228,12 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
             saveCard(board, index, controller.text);
           }
         },
-        child: Stack(
-          children: [
-            CustomContainer.editableCard(
-              key: ValueKey(board[index]),
-              content: board[index],
-              onUpdate: (newContent) => saveCard(board, index, newContent),
-              lineColor: lineColor,
-              isEditing: activeEditingCard == board[index],
-            ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    activeEditingCard = board[index];
-                    focusNode.requestFocus();
-                  });
-                },
-                child: const Icon(Icons.edit, size: 18, color: Colors.grey),
-              ),
-            ),
-          ],
+        child: CustomContainer.editableCard(
+          key: ValueKey(board[index]),
+          content: board[index],
+          onUpdate: (newContent) => saveCard(board, index, newContent),
+          lineColor: lineColor,
+          isEditing: activeEditingCard == board[index],
         ),
       ),
     );
