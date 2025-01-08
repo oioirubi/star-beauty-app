@@ -26,63 +26,53 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Plano de Ação'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('Objetivo do Mês'),
-            _buildTextField('Qual é o seu objetivo para esse mês?'),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Faturamento Desejado'),
-            _buildNumberField('Quanto você deseja faturar?'),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Preencha a tabela com os seus serviços'),
-            _buildEditableServiceTable(),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    valorControllers.add(TextEditingController());
-                    quantidadeControllers.add(TextEditingController());
-                    resultados.add(0.0);
-                  });
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Adicionar Linha'),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Total Previsto Geral'),
-            _buildDataCard(_calculateTotal()),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Painel dos Profissionais'),
-            _buildTextField(
-                'Análise dos profissionais para este plano de ação'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Lógica para salvar o plano de ação
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Plano de Ação salvo com sucesso!')),
-                );
-              },
-              child: const Text('Salvar Plano de Ação'),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionTitle(
-                'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
-            _buildExampleTable(),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Objetivo do Mês'),
+        _buildTextField('Qual é o seu objetivo para esse mês?'),
+        const SizedBox(height: 16),
+        _buildSectionTitle('Faturamento Desejado'),
+        _buildNumberField('Quanto você deseja faturar?'),
+        const SizedBox(height: 16),
+        _buildSectionTitle('Preencha a tabela com os seus serviços'),
+        _buildEditableServiceTable(),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () {
+              setState(() {
+                valorControllers.add(TextEditingController());
+                quantidadeControllers.add(TextEditingController());
+                resultados.add(0.0);
+              });
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Adicionar Linha'),
+          ),
         ),
-      ),
+        const SizedBox(height: 16),
+        _buildSectionTitle('Total Previsto Geral'),
+        _buildDataCard(_calculateTotal()),
+        const SizedBox(height: 16),
+        _buildSectionTitle('Painel dos Profissionais'),
+        _buildTextField('Análise dos profissionais para este plano de ação'),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            // Lógica para salvar o plano de ação
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
+            );
+          },
+          child: const Text('Salvar Plano de Ação'),
+        ),
+        const SizedBox(height: 16),
+        _buildSectionTitle(
+            'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
+        _buildExampleTable(),
+      ],
     );
   }
 
