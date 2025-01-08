@@ -56,14 +56,7 @@ class BaseLateralBar extends StatelessWidget {
                   isSubItem: true,
                   showText: isExpanded,
                 ),
-                _buildMenuItem(
-                  context,
-                  icon: Icons.video_library, // Ícone de vídeos
-                  title: 'Vídeos recentes',
-                  route: '/videos_recentes',
-                  isSubItem: true,
-                  showText: isExpanded,
-                ),
+
                 _buildMenuItem(
                   context,
                   icon: Icons.star, // Ícone de estrela para Starflix

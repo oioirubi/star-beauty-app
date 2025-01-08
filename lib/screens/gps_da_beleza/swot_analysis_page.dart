@@ -120,8 +120,8 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
       children: [
         for (int i = 0; i < board.length; i++) ...[
           DragTarget<String>(
-            onWillAccept: (data) => true,
-            onAccept: (data) {
+            onWillAcceptWithDetails: (data) => true,
+            onAcceptWithDetails: (data) {
               // Detecta a origem e move o item
               List<List<String>> allBoards = [
                 forces,
@@ -131,7 +131,7 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
               ];
               for (var sourceBoard in allBoards) {
                 if (sourceBoard.contains(data)) {
-                  onItemDropped(data, board, sourceBoard);
+                  onItemDropped(data as String, board, sourceBoard);
                   break;
                 }
               }
@@ -153,8 +153,8 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
           _buildEditableCard(board, i, lineColor),
         ],
         DragTarget<String>(
-          onWillAccept: (data) => true,
-          onAccept: (data) {
+          onWillAcceptWithDetails: (data) => true,
+          onAcceptWithDetails: (data) {
             List<List<String>> allBoards = [
               forces,
               weaknesses,
@@ -163,7 +163,7 @@ class _SwotAnalysisPageState extends State<SwotAnalysisPage> {
             ];
             for (var sourceBoard in allBoards) {
               if (sourceBoard.contains(data)) {
-                onItemDropped(data, board, sourceBoard);
+                onItemDropped(data as String, board, sourceBoard);
                 break;
               }
             }

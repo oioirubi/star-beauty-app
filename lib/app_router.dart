@@ -163,8 +163,7 @@ GoRouter createRouter(BuildContext context) {
             ),
             GoRoute(
               path: '/relatorio_mensal',
-              builder: (context, state) =>
-                  const MonthlyReportScreen(userType: 'UserType'),
+              builder: (context, state) => const MonthlyReportScreen(),
             ),
             GoRoute(
               path: '/plano_de_acao',
