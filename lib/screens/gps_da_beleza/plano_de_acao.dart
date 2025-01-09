@@ -39,6 +39,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         _buildSectionEditableTable('Preencha a tabela com os seus serviços'),
         const SizedBox(height: 16),
         CustomContainer(
+          contentPadding: const EdgeInsets.all(50),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -60,7 +61,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
           },
         ),
         const SizedBox(height: 16),
-        _buildSectionEditableTable(
+        _buildSectionTable(
             'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
       ],
     );
@@ -74,6 +75,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     Function()? onPressed,
   }) {
     return CustomContainer(
+      contentPadding: const EdgeInsets.all(50),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -93,6 +95,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
 
   Widget _buildSectionEditableTable(String title) {
     return CustomContainer(
+      contentPadding: const EdgeInsets.all(50),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -120,7 +123,9 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
 
   Widget _buildSectionTable(String title) {
     return CustomContainer(
+      contentPadding: const EdgeInsets.all(50),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionTitle(title),
           _buildExampleTable(),
