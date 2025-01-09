@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:star_beauty_app/components/custom_container.dart';
 
 class ActionPlanScreen extends StatefulWidget {
   const ActionPlanScreen({super.key, required String userType});
@@ -29,50 +30,102 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Objetivo do Mês'),
-        _buildTextField('Qual é o seu objetivo para esse mês?'),
+        _buildSectionTextField(
+            'Objetivo do Mês', 'Qual é o seu objetivo para esse mês?'),
         const SizedBox(height: 16),
-        _buildSectionTitle('Faturamento Desejado'),
-        _buildNumberField('Quanto você deseja faturar?'),
+        _buildSectionTextField(
+            'Faturamento Desejado', 'Quanto você deseja faturar?'),
         const SizedBox(height: 16),
-        _buildSectionTitle('Preencha a tabela com os seus serviços'),
-        _buildEditableServiceTable(),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: () {
-              setState(() {
-                valorControllers.add(TextEditingController());
-                quantidadeControllers.add(TextEditingController());
-                resultados.add(0.0);
-              });
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Adicionar Linha'),
+        _buildSectionEditableTable('Preencha a tabela com os seus serviços'),
+        const SizedBox(height: 16),
+        CustomContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle('Total Previsto Geral'),
+              _buildDataCard(_calculateTotal()),
+            ],
           ),
         ),
         const SizedBox(height: 16),
-        _buildSectionTitle('Total Previsto Geral'),
-        _buildDataCard(_calculateTotal()),
-        const SizedBox(height: 16),
-        _buildSectionTitle('Painel dos Profissionais'),
-        _buildTextField('Análise dos profissionais para este plano de ação'),
-        const SizedBox(height: 16),
-        ElevatedButton(
+        _buildSectionTextField(
+          'Painel dos Profissionais',
+          'Análise dos profissionais para este plano de ação',
+          submitButton: true,
+          buttonLabel: "Salvar Plano de Ação",
           onPressed: () {
-            // Lógica para salvar o plano de ação
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
             );
           },
-          child: const Text('Salvar Plano de Ação'),
         ),
         const SizedBox(height: 16),
-        _buildSectionTitle(
+        _buildSectionEditableTable(
             'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
-        _buildExampleTable(),
       ],
+    );
+  }
+
+  Widget _buildSectionTextField(
+    String title,
+    String hint, {
+    bool submitButton = false,
+    String buttonLabel = "Submit",
+    Function()? onPressed,
+  }) {
+    return CustomContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(title),
+          _buildTextField(hint),
+          const SizedBox(height: 8),
+          submitButton
+              ? ElevatedButton(
+                  onPressed: onPressed,
+                  child: Text(buttonLabel),
+                )
+              : Container()
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionEditableTable(String title) {
+    return CustomContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(title),
+          _buildEditableServiceTable(),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  valorControllers.add(TextEditingController());
+                  quantidadeControllers.add(TextEditingController());
+                  resultados.add(0.0);
+                });
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Adicionar Linha'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTable(String title) {
+    return CustomContainer(
+      child: Column(
+        children: [
+          _buildSectionTitle(title),
+          _buildExampleTable(),
+        ],
+      ),
     );
   }
 
