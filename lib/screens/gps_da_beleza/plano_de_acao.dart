@@ -38,31 +38,23 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         const SizedBox(height: 16),
         _buildSectionEditableTable('Preencha a tabela com os seus serviços'),
         const SizedBox(height: 16),
-        CustomContainer(
-          contentPadding: const EdgeInsets.all(50),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle('Total Previsto Geral'),
-              _buildDataCard(_calculateTotal()),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildSectionTextField(
-          'Painel dos Profissionais',
-          'Análise dos profissionais para este plano de ação',
-          submitButton: true,
-          buttonLabel: "Salvar Plano de Ação",
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        _buildSectionTable(
-            'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
+        _buildSectionTextField('Total Previsto Geral', _calculateTotal(),
+            editable: false),
+        // const SizedBox(height: 16),
+        // _buildSectionTextField(
+        //   'Painel dos Profissionais',
+        //   'Análise dos profissionais para este plano de ação',
+        //   submitButton: true,
+        //   buttonLabel: "Salvar Plano de Ação",
+        //   onPressed: () {
+        //     ScaffoldMessenger.of(context).showSnackBar(
+        //       const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
+        //     );
+        //   },
+        // ),
+        // const SizedBox(height: 16),
+        // _buildSectionTable(
+        //     'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
       ],
     );
   }
@@ -70,6 +62,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
   Widget _buildSectionTextField(
     String title,
     String hint, {
+    bool editable = true,
     bool submitButton = false,
     String buttonLabel = "Submit",
     Function()? onPressed,
@@ -80,7 +73,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionTitle(title),
-          _buildTextField(hint),
+          editable ? _buildTextField(hint) : Text(hint),
           const SizedBox(height: 8),
           submitButton
               ? ElevatedButton(
@@ -106,11 +99,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: () {
-                setState(() {
-                  valorControllers.add(TextEditingController());
-                  quantidadeControllers.add(TextEditingController());
-                  resultados.add(0.0);
-                });
+                _addNewRow();
               },
               icon: const Icon(Icons.add),
               label: const Text('Adicionar Linha'),
@@ -196,6 +185,10 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Text(result),
         ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(),
+        ),
       ],
     );
   }
@@ -254,19 +247,24 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Card(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                resultados[index].toStringAsFixed(2),
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+          child: Text(
+            resultados[index].toStringAsFixed(2),
+            style: const TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
             ),
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton(
+              onPressed: () {
+                _removeTableLine(index);
+              },
+              icon: Icon(
+                Icons.remove,
+                color: Colors.red,
+              )),
         ),
       ],
     );
@@ -317,5 +315,23 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         _buildTableRow('Total', '', '204', 'R\$ 14.200'),
       ],
     );
+  }
+
+  void _removeTableLine(int index) {
+    setState(() {
+      if (valorControllers.length > 1) {
+        valorControllers.removeAt(index);
+        quantidadeControllers.removeAt(index);
+        resultados.removeAt(index);
+      }
+    });
+  }
+
+  void _addNewRow() {
+    setState(() {
+      valorControllers.add(TextEditingController());
+      quantidadeControllers.add(TextEditingController());
+      resultados.add(0.0);
+    });
   }
 }
