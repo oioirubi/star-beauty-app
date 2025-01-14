@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
+import 'package:star_beauty_app/components/custom_text.dart';
+import 'package:star_beauty_app/components/edit_button.dart';
 
 class ActionPlanScreen extends StatefulWidget {
   const ActionPlanScreen({super.key, required String userType});
@@ -13,6 +15,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
   List<TextEditingController> valorControllers = [];
   List<TextEditingController> quantidadeControllers = [];
   List<double> resultados = [];
+  bool isEditing = false;
 
   @override
   void initState() {
@@ -27,35 +30,67 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTextField(
-            'Objetivo do Mês', 'Qual é o seu objetivo para esse mês?'),
-        const SizedBox(height: 16),
-        _buildSectionTextField(
-            'Faturamento Desejado', 'Quanto você deseja faturar?'),
-        const SizedBox(height: 16),
-        _buildSectionEditableTable('Preencha a tabela com os seus serviços'),
-        const SizedBox(height: 16),
-        _buildSectionTextField('Total Previsto Geral', _calculateTotal(),
-            editable: false),
-        // const SizedBox(height: 16),
-        // _buildSectionTextField(
-        //   'Painel dos Profissionais',
-        //   'Análise dos profissionais para este plano de ação',
-        //   submitButton: true,
-        //   buttonLabel: "Salvar Plano de Ação",
-        //   onPressed: () {
-        //     ScaffoldMessenger.of(context).showSnackBar(
-        //       const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
-        //     );
-        //   },
-        // ),
-        // const SizedBox(height: 16),
-        // _buildSectionTable(
-        //     'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(30.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      text: "Plano de Ação",
+                      isBigTitle: true,
+                    ),
+                    EditButton(
+                      onEditStateChanged: (value) {
+                        setState(() {
+                          isEditing = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                _buildSectionTextField(
+                    'Objetivo do Mês', 'Qual é o seu objetivo para esse mês?',
+                    editable: isEditing),
+                const SizedBox(height: 16),
+                _buildSectionTextField(
+                    'Faturamento Desejado', 'Quanto você deseja faturar?',
+                    editable: isEditing),
+                const SizedBox(height: 16),
+                _buildSectionEditableTable(
+                    'Preencha a tabela com os seus serviços',
+                    editable: isEditing),
+                const SizedBox(height: 16),
+                _buildSectionTextField(
+                    'Total Previsto Geral', _calculateTotal(),
+                    editable: false),
+                // const SizedBox(height: 16),
+                // _buildSectionTextField(
+                //   'Painel dos Profissionais',
+                //   'Análise dos profissionais para este plano de ação',
+                //   submitButton: true,
+                //   buttonLabel: "Salvar Plano de Ação",
+                //   onPressed: () {
+                //     ScaffoldMessenger.of(context).showSnackBar(
+                //       const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
+                //     );
+                //   },
+                // ),
+                // const SizedBox(height: 16),
+                // _buildSectionTable(
+                //     'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -86,24 +121,26 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     );
   }
 
-  Widget _buildSectionEditableTable(String title) {
+  Widget _buildSectionEditableTable(String title, {bool editable = true}) {
     return CustomContainer(
       contentPadding: const EdgeInsets.all(50),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionTitle(title),
-          _buildEditableServiceTable(),
+          _buildEditableServiceTable(editable: editable),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () {
-                _addNewRow();
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Adicionar Linha'),
-            ),
+            child: editable
+                ? TextButton.icon(
+                    onPressed: () {
+                      _addNewRow();
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Adicionar Linha'),
+                  )
+                : Container(),
           ),
         ],
       ),
@@ -154,13 +191,13 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     );
   }
 
-  Widget _buildEditableServiceTable() {
+  Widget _buildEditableServiceTable({bool editable = true}) {
     return Table(
       border: TableBorder.all(),
       children: [
         _buildTableRow('Serviço', 'Valor', 'Quantidade', 'Resultado'),
         for (int i = 0; i < valorControllers.length; i++)
-          _buildEditableTableRow(i),
+          _buildEditableTableRow(i, editable: editable),
       ],
     );
   }
@@ -193,57 +230,69 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     );
   }
 
-  TableRow _buildEditableTableRow(int index) {
+  TableRow _buildEditableTableRow(int index, {bool editable = true}) {
     return TableRow(
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Serviço',
-              border: InputBorder.none, // Remover borda
-              filled: false, // Remover cor de fundo
-            ),
-          ),
+          child: editable
+              ? TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Serviço',
+                    border: InputBorder.none, // Remover borda
+                    filled: false, // Remover cor de fundo
+                  ),
+                )
+              : Text('Serviço'),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: valorControllers[index],
-            decoration: const InputDecoration(
-              hintText: 'Valor',
-              prefixText: 'R\$ ',
-              border: InputBorder.none, // Remover borda
-              filled: false, // Remover cor de fundo
-            ),
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly, // Apenas números
-            ],
-            onChanged: (value) {
-              _updateResult(
-                  index); // Chama o método de atualização em tempo real
-            },
-          ),
+          child: editable
+              ? TextField(
+                  controller: valorControllers[index],
+                  decoration: const InputDecoration(
+                    hintText: 'Valor',
+                    prefixText: 'R\$ ',
+                    border: InputBorder.none, // Remover borda
+                    filled: false, // Remover cor de fundo
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly, // Apenas números
+                  ],
+                  onChanged: (value) {
+                    _updateResult(
+                        index); // Chama o método de atualização em tempo real
+                  },
+                )
+              : Text(valorControllers[index].text.isEmpty
+                  ? "Valor"
+                  : valorControllers[index].text),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: quantidadeControllers[index],
-            decoration: const InputDecoration(
-              hintText: 'Quantidade',
-              border: InputBorder.none, // Remover borda
-              filled: false, // Remover cor de fundo
-            ),
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly, // Apenas números
-            ],
-            onChanged: (value) {
-              _updateResult(
-                  index); // Chama o método de atualização em tempo real
-            },
-          ),
+          child: editable
+              ? TextField(
+                  controller: quantidadeControllers[index],
+                  decoration: const InputDecoration(
+                    hintText: 'Quantidade',
+                    border: InputBorder.none, // Remover borda
+                    filled: false, // Remover cor de fundo
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly, // Apenas números
+                  ],
+                  onChanged: (value) {
+                    _updateResult(
+                        index); // Chama o método de atualização em tempo real
+                  },
+                )
+              : Text(
+                  quantidadeControllers[index].text.isEmpty
+                      ? "Quantidade"
+                      : quantidadeControllers[index].text,
+                ),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -255,17 +304,19 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: IconButton(
-              onPressed: () {
-                _removeTableLine(index);
-              },
-              icon: Icon(
-                Icons.remove,
-                color: Colors.red,
-              )),
-        ),
+        editable
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                    onPressed: () {
+                      _removeTableLine(index);
+                    },
+                    icon: Icon(
+                      Icons.remove,
+                      color: Colors.red,
+                    )),
+              )
+            : Container(),
       ],
     );
   }
