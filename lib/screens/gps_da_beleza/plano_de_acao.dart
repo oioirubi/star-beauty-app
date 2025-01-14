@@ -44,7 +44,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText(
+                    const CustomText(
                       text: "Plano de Ação",
                       isBigTitle: true,
                     ),
