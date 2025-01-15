@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:star_beauty_app/components/custom_text.dart';
+import 'package:star_beauty_app/components/edit_button.dart';
 
 class MonthlyReportScreen extends StatefulWidget {
   const MonthlyReportScreen({super.key});
@@ -11,6 +14,9 @@ class MonthlyReportScreen extends StatefulWidget {
 }
 
 class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final TextEditingController faturamentoTotalController =
       TextEditingController();
   final TextEditingController faturamentoAreasController =
@@ -33,187 +39,158 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
   final TextEditingController resultadoController = TextEditingController();
 
+  late Future<void> _futureData;
+
   bool isEditing = false;
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    faturamentoTotalController.text = "10000";
-    faturamentoAreasController.text = "4000";
-    servicosTotalController.text = "150";
-    servicosAreasController.text = "50";
-
-    aluguelController.text = "2000";
-    funcionarioController.text = "3000";
-    aguaController.text = "200";
-    luzController.text = "300";
-    contadorController.text = "500";
-    internetController.text = "100";
-
-    comissaoController.text = "500";
-    mercadoController.text = "700";
-    manutencaoController.text = "400";
-
-    resultadoController.text = "3000";
+    _futureData = _loadData();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(30.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1080),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder(
+      future: _futureData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container();
+        }
+        return Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1080),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                      text: "Relatório Mensal",
-                      isBigTitle: true,
-                    ),
-                    if (!isEditing)
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isEditing = true;
-                          });
-                        },
-                        child: const Text("Editar"),
-                      )
-                    else
-                      Row(
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                isEditing = false;
-                              });
-                            },
-                            child: const Text(
-                              "Cancelar",
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                isEditing = false;
-                              });
-                              // Salvar lógica aqui
-                            },
-                            child: const Text("Salvar"),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _buildSection(
-                  bigTitle: "Faturamento",
-                  fields: [
-                    _buildCurrencyField(
-                      title: "Total",
-                      controller: faturamentoTotalController,
-                      isEditing: isEditing,
-                    ),
-                    _buildCurrencyField(
-                      title: "Por área de negócio",
-                      controller: faturamentoAreasController,
-                      isEditing: isEditing,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _buildSection(
-                  bigTitle: "Serviços Realizados",
-                  fields: [
-                    _buildNumericField(
-                      title: "Total",
-                      controller: servicosTotalController,
-                      isEditing: isEditing,
-                    ),
-                    _buildNumericField(
-                      title: "Por área de negócio",
-                      controller: servicosAreasController,
-                      isEditing: isEditing,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _buildSection(
-                  bigTitle: "Despesas",
-                  fields: [
-                    CustomText(text: "Fixas", isTitle: true),
-                    _buildCurrencyField(
-                      title: "Aluguel do espaço",
-                      controller: aluguelController,
-                      isEditing: isEditing,
-                    ),
-                    _buildCurrencyField(
-                      title: "Funcionário CLT",
-                      controller: funcionarioController,
-                      isEditing: isEditing,
-                    ),
-                    _buildCurrencyField(
-                      title: "Água",
-                      controller: aguaController,
-                      isEditing: isEditing,
-                    ),
-                    _buildCurrencyField(
-                      title: "Luz",
-                      controller: luzController,
-                      isEditing: isEditing,
-                    ),
-                    _buildCurrencyField(
-                      title: "Contador",
-                      controller: contadorController,
-                      isEditing: isEditing,
-                    ),
-                    _buildCurrencyField(
-                      title: "Internet",
-                      controller: internetController,
-                      isEditing: isEditing,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                          text: "Relatório Mensal",
+                          isBigTitle: true,
+                        ),
+                        EditButton(
+                          onEditStateChanged: (value) {
+                            setState(() {
+                              isEditing = value;
+                            });
+                          },
+                          onSave: () {
+                            _saveData();
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
-                    CustomText(text: "Variáveis", isTitle: true),
-                    _buildCurrencyField(
-                      title: "Comissão de profissional",
-                      controller: comissaoController,
-                      isEditing: isEditing,
+                    _buildSection(
+                      bigTitle: "Faturamento",
+                      fields: [
+                        _buildCurrencyField(
+                          title: "Total",
+                          controller: faturamentoTotalController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Por área de negócio",
+                          controller: faturamentoAreasController,
+                          isEditing: isEditing,
+                        ),
+                      ],
                     ),
-                    _buildCurrencyField(
-                      title: "Mercado",
-                      controller: mercadoController,
-                      isEditing: isEditing,
+                    const SizedBox(height: 20),
+                    _buildSection(
+                      bigTitle: "Serviços Realizados",
+                      fields: [
+                        _buildNumericField(
+                          title: "Total",
+                          controller: servicosTotalController,
+                          isEditing: isEditing,
+                        ),
+                        _buildNumericField(
+                          title: "Por área de negócio",
+                          controller: servicosAreasController,
+                          isEditing: isEditing,
+                        ),
+                      ],
                     ),
-                    _buildCurrencyField(
-                      title: "Manutenção",
-                      controller: manutencaoController,
-                      isEditing: isEditing,
+                    const SizedBox(height: 20),
+                    _buildSection(
+                      bigTitle: "Despesas",
+                      fields: [
+                        CustomText(text: "Fixas", isTitle: true),
+                        _buildCurrencyField(
+                          title: "Aluguel do espaço",
+                          controller: aluguelController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Funcionário CLT",
+                          controller: funcionarioController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Água",
+                          controller: aguaController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Luz",
+                          controller: luzController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Contador",
+                          controller: contadorController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Internet",
+                          controller: internetController,
+                          isEditing: isEditing,
+                        ),
+                        const SizedBox(height: 20),
+                        CustomText(text: "Variáveis", isTitle: true),
+                        _buildCurrencyField(
+                          title: "Comissão de profissional",
+                          controller: comissaoController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Mercado",
+                          controller: mercadoController,
+                          isEditing: isEditing,
+                        ),
+                        _buildCurrencyField(
+                          title: "Manutenção",
+                          controller: manutencaoController,
+                          isEditing: isEditing,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSection(
+                      bigTitle: "Resultado",
+                      fields: [
+                        _buildCurrencyField(
+                          title: "Lucratividade (despesas x entradas)",
+                          controller: resultadoController,
+                          isEditing: isEditing,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                _buildSection(
-                  bigTitle: "Resultado",
-                  fields: [
-                    _buildCurrencyField(
-                      title: "Lucratividade (despesas x entradas)",
-                      controller: resultadoController,
-                      isEditing: isEditing,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -295,5 +272,94 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         const SizedBox(height: 16),
       ],
     );
+  }
+
+  Future<void> _loadData() async {
+    try {
+      //verificar se o usuário é autenticado
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('relatorio_mensal')
+          .doc('current')
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        setState(() {
+          faturamentoTotalController.text = data?['faturamentoTotal'] ?? '';
+          faturamentoAreasController.text = data?['faturamentoAreas'] ?? '';
+          servicosAreasController.text = data?['servicosAreas'] ?? '';
+          // Controllers para despesas fixa.text = data?['']??'';
+          aluguelController.text = data?['aluguel'] ?? '';
+          funcionarioController.text = data?['funcionario'] ?? '';
+          aguaController.text = data?['agua'] ?? '';
+          luzController.text = data?['luz'] ?? '';
+          contadorController.text = data?['contador'] ?? '';
+          internetController.text = data?['internet'] ?? '';
+          // Controllers para despesas vari.text = data?[]??'';veis
+          comissaoController.text = data?['comissao'] ?? '';
+          mercadoController.text = data?['mercado'] ?? '';
+          manutencaoController.text = data?['manutencao'] ?? '';
+          resultadoController.text = data?['resultado'] ?? '';
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plano de ação carregado com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar o plano de ação: $e')),
+      );
+    }
+  }
+
+  Future<void> _saveData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('relatorio_mensal')
+          .doc('current')
+          .set({
+        'faturamentoTotal': faturamentoTotalController.text,
+        'faturamentoAreas': faturamentoAreasController.text,
+        'servicosTotal': servicosTotalController.text,
+        'servicosAreas': servicosAreasController.text,
+        // Controllers para despesas fixa.text,
+        'aluguel': aluguelController.text,
+        'funcionario': funcionarioController.text,
+        'agua': aguaController.text,
+        'luz': luzController.text,
+        'contador': contadorController.text,
+        'internet': internetController.text,
+        // Controllers para despesas variávei.text,
+        'comissao': comissaoController.text,
+        'mercado': mercadoController.text,
+        'manutencao': manutencaoController.text,
+        'resultado': resultadoController.text,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plano de ação salvo com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar plano: $e')),
+      );
+    }
   }
 }
