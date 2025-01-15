@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class EditableTable extends StatefulWidget {
+  List<TextEditingController> servicoControllers = [];
   List<TextEditingController> valorControllers = [];
   List<TextEditingController> quantidadeControllers = [];
   List<double> resultados = [];
   final bool editable;
   final Function(
+    List<TextEditingController> servicoControllers,
     List<TextEditingController> valorControllers,
     List<TextEditingController> quantidadeControllers,
     List<double> resultados,
@@ -16,6 +18,7 @@ class EditableTable extends StatefulWidget {
     super.key,
     this.onValueChanged,
     this.editable = true,
+    this.servicoControllers = const [],
     this.valorControllers = const [],
     this.quantidadeControllers = const [],
     this.resultados = const [],
@@ -25,22 +28,6 @@ class EditableTable extends StatefulWidget {
 }
 
 class _EditableTableState extends State<EditableTable> {
-  List<TextEditingController> _valorControllers = [];
-  List<TextEditingController> _quantidadeControllers = [];
-  List<double> _resultados = [];
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    _valorControllers = widget.valorControllers;
-    _quantidadeControllers = widget.quantidadeControllers;
-    _resultados = widget.resultados;
-    if (_valorControllers.isEmpty) {
-      addNewRow();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -68,7 +55,7 @@ class _EditableTableState extends State<EditableTable> {
     return Table(
       children: [
         _buildTableRow('Serviço', 'Valor', 'Quantidade', 'Resultado'),
-        for (int i = 0; i < _valorControllers.length; i++)
+        for (int i = 0; i < widget.valorControllers.length; i++)
           _buildEditableTableRow(i, editable: widget.editable),
       ],
     );
@@ -101,23 +88,39 @@ class _EditableTableState extends State<EditableTable> {
   }
 
   TableRow _buildEditableTableRow(int index, {bool editable = true}) {
+    if (widget.valorControllers.isEmpty) {
+      addNewRow();
+    }
     return TableRow(
       children: [
         createCell(
           editable
-              ? const TextField(
-                  decoration: InputDecoration(
+              ? TextField(
+                  controller: widget.servicoControllers[index],
+                  decoration: const InputDecoration(
                     hintText: 'Serviço',
                     border: InputBorder.none, // Remover borda
                     filled: false, // Remover cor de fundo
                   ),
+                  onChanged: (value) {
+                    widget.onValueChanged?.call(
+                      widget.servicoControllers,
+                      widget.valorControllers,
+                      widget.quantidadeControllers,
+                      widget.resultados,
+                    ); // Chama o
+                  },
                 )
-              : Center(child: const Text('Serviço')),
+              : Center(
+                  child: Text(widget.servicoControllers[index].text.isEmpty
+                      ? "Serviços"
+                      : widget.servicoControllers[index].text),
+                ),
         ),
         createCell(
           editable
               ? TextField(
-                  controller: _valorControllers[index],
+                  controller: widget.valorControllers[index],
                   decoration: const InputDecoration(
                     hintText: 'Valor',
                     prefixText: 'R\$ ',
@@ -133,21 +136,23 @@ class _EditableTableState extends State<EditableTable> {
                       _updateResult(index);
                     });
                     widget.onValueChanged?.call(
-                        valorControllers,
-                        quantidadeControllers,
-                        resultados); // Chama o método de atualização em tempo real
+                      widget.servicoControllers,
+                      widget.valorControllers,
+                      widget.quantidadeControllers,
+                      widget.resultados,
+                    );
                   },
                 )
               : Center(
-                  child: Text(_valorControllers[index].text.isEmpty
+                  child: Text(widget.valorControllers[index].text.isEmpty
                       ? "Valor"
-                      : _valorControllers[index].text),
+                      : widget.valorControllers[index].text),
                 ),
         ),
         createCell(
           editable
               ? TextField(
-                  controller: _quantidadeControllers[index],
+                  controller: widget.quantidadeControllers[index],
                   decoration: const InputDecoration(
                     hintText: 'Quantidade',
                     border: InputBorder.none, // Remover borda
@@ -162,23 +167,25 @@ class _EditableTableState extends State<EditableTable> {
                       _updateResult(index);
                     });
                     widget.onValueChanged?.call(
-                        valorControllers,
-                        quantidadeControllers,
-                        resultados); // Chama o método de atualização em tempo real
+                      widget.servicoControllers,
+                      widget.valorControllers,
+                      widget.quantidadeControllers,
+                      widget.resultados,
+                    );
                   },
                 )
               : Center(
                   child: Text(
-                    _quantidadeControllers[index].text.isEmpty
+                    widget.quantidadeControllers[index].text.isEmpty
                         ? "Quantidade"
-                        : _quantidadeControllers[index].text,
+                        : widget.quantidadeControllers[index].text,
                   ),
                 ),
         ),
         createCell(
           Center(
             child: Text(
-              _resultados[index].toStringAsFixed(2),
+              widget.resultados[index].toStringAsFixed(2),
               style: const TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
@@ -204,52 +211,54 @@ class _EditableTableState extends State<EditableTable> {
 
   void removeRow(int index) {
     setState(() {
-      if (_valorControllers.length > 1) {
-        _valorControllers.removeAt(index);
-        _quantidadeControllers.removeAt(index);
-        _resultados.removeAt(index);
+      if (widget.valorControllers.length > 1) {
+        widget.servicoControllers.remove(index);
+        widget.valorControllers.removeAt(index);
+        widget.quantidadeControllers.removeAt(index);
+        widget.resultados.removeAt(index);
       }
     });
   }
 
   void addNewRow() {
     setState(() {
-      _valorControllers.add(TextEditingController());
-      _quantidadeControllers.add(TextEditingController());
-      _resultados.add(0.0);
+      widget.servicoControllers.add(TextEditingController());
+      widget.valorControllers.add(TextEditingController());
+      widget.quantidadeControllers.add(TextEditingController());
+      widget.resultados.add(0.0);
     });
   }
 
   void _updateResult(int index) {
-    final valor = double.tryParse(_valorControllers[index].text) ?? 0.0;
+    final valor = double.tryParse(widget.valorControllers[index].text) ?? 0.0;
     final quantidade =
-        double.tryParse(_quantidadeControllers[index].text) ?? 0.0;
+        double.tryParse(widget.quantidadeControllers[index].text) ?? 0.0;
     setState(() {
-      _resultados[index] = valor * quantidade;
+      widget.resultados[index] = valor * quantidade;
     });
   }
 
   get resultados {
-    return _resultados;
+    return widget.resultados;
   }
 
   get valorControllers {
-    return _valorControllers;
+    return widget.valorControllers;
   }
 
   get quantidadeControllers {
-    return _quantidadeControllers;
+    return widget.quantidadeControllers;
   }
 
   set resultados(value) {
-    _resultados = value;
+    widget.resultados = value;
   }
 
   set valorControllers(value) {
-    _valorControllers = value;
+    widget.valorControllers = value;
   }
 
   set quantidadeControllers(value) {
-    _quantidadeControllers = value;
+    widget.quantidadeControllers = value;
   }
 }

@@ -21,6 +21,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
   final TextEditingController objetivoController = TextEditingController();
   final TextEditingController faturamentoDesejadoController =
       TextEditingController();
+  List<TextEditingController> servicoControllers = [];
   List<TextEditingController> valorControllers = [];
   List<TextEditingController> quantidadeControllers = [];
   List<double> resultados = [];
@@ -72,6 +73,9 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
                           },
                           onSave: () {
                             _saveData();
+                          },
+                          onCancel: () {
+                            _futureData = _loadData();
                           },
                         ),
                       ],
@@ -163,10 +167,12 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
           _buildSectionTitle(title),
           EditableTable(
             editable: editable,
+            servicoControllers: this.servicoControllers,
             valorControllers: this.valorControllers,
             quantidadeControllers: this.quantidadeControllers,
             resultados: this.resultados,
-            onValueChanged: (valor, quantidade, resultados) {
+            onValueChanged: (servico, valor, quantidade, resultados) {
+              servicoControllers = servico;
               valorControllers = valor;
               quantidadeControllers = quantidade;
               this.resultados = resultados;
@@ -312,11 +318,14 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
               data?['faturamentoDesejado'] ?? '';
           final tableData = data?['tableData'] ?? [];
 
+          servicoControllers = [];
           valorControllers = [];
           quantidadeControllers = [];
           resultados = [];
 
           for (int i = 0; i < tableData.length; i++) {
+            servicoControllers.add(
+                TextEditingController(text: tableData[i]['servico'] ?? ''));
             valorControllers
                 .add(TextEditingController(text: tableData[i]['valor'] ?? ''));
             quantidadeControllers.add(
@@ -347,6 +356,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
       List<Map<String, dynamic>> tableData = [];
       for (int i = 0; i < valorControllers.length; i++) {
         tableData.add({
+          'servico': servicoControllers[i].text,
           'valor': valorControllers[i].text,
           'quantidade': quantidadeControllers[i].text,
           'reultado': resultados[i],
