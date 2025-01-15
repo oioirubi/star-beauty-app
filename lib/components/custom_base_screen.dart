@@ -81,7 +81,7 @@ class _CustomizableBaseScreenState extends State<CustomizableBaseScreen> {
                   child: Container(
                     constraints: BoxConstraints(
                       maxWidth: widget.maxContentWidth,
-                      minHeight: screenHeight, // Garante altura da tela
+                      minHeight: 0, // Garante altura da tela
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 
 class MatchListagem extends StatefulWidget {
-  final String userType; // 'professional' ou 'owner'
+  final String userType = 'owner'; // 'professional' ou 'owner'
 
-  const MatchListagem({super.key, required this.userType});
+  const MatchListagem({super.key});
 
   @override
   _MatchScreenState createState() => _MatchScreenState();

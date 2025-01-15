@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:star_beauty_app/components/custom_base_screen.dart';
 import 'package:star_beauty_app/global_state/firebase_auth_notifier.dart';
+import 'package:star_beauty_app/screens/busca_e_match/busca_e_match.dart';
 
 import 'package:star_beauty_app/screens/busca_e_match/meus_maths.dart';
 import 'package:star_beauty_app/screens/error_screen.dart';
@@ -114,13 +115,11 @@ GoRouter createRouter(BuildContext context) {
             GoRoute(
               path: '/busca_e_match',
               builder: (context, state) =>
-                  const MeusMaths(userType: 'UserType'),
+                  const BuscaEMatch(userType: 'owner',),
             ),
             GoRoute(
               path: '/listagem',
-              builder: (context, state) => const MatchListagem(
-                userType: '',
-              ),
+              builder: (context, state) => const MatchListagem(),
             ),
             GoRoute(
               path: '/meus_matchs',
