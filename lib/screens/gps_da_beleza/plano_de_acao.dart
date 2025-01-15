@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
@@ -13,91 +15,121 @@ class ActionPlanScreen extends StatefulWidget {
 }
 
 class _ActionPlanScreenState extends State<ActionPlanScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final TextEditingController objetivoController = TextEditingController();
+  final TextEditingController faturamentoDesejadoController =
+      TextEditingController();
   List<TextEditingController> valorControllers = [];
   List<TextEditingController> quantidadeControllers = [];
   List<double> resultados = [];
+  late Future<void> _futureData;
   bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    // Adicionar 4 linhas iniciais vazias
-    for (int i = 0; i < 4; i++) {
-      valorControllers.add(TextEditingController());
-      quantidadeControllers.add(TextEditingController());
-      resultados.add(0.0);
-    }
+    _futureData = _loadData();
+    // // Adicionar 4 linhas iniciais vazias
+    // for (int i = 0; i < 4; i++) {
+    //   valorControllers.add(TextEditingController());
+    //   quantidadeControllers.add(TextEditingController());
+    //   resultados.add(0.0);
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(30.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1080),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder(
+      future: _futureData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container();
+        }
+        return Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1080),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CustomText(
-                      text: "Plano de Ação",
-                      isBigTitle: true,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const CustomText(
+                          text: "Plano de Ação",
+                          isBigTitle: true,
+                        ),
+                        EditButton(
+                          onEditStateChanged: (value) {
+                            setState(() {
+                              isEditing = value;
+                            });
+                          },
+                          onSave: () {
+                            _saveData();
+                          },
+                        ),
+                      ],
                     ),
-                    EditButton(
-                      onEditStateChanged: (value) {
-                        setState(() {
-                          isEditing = value;
-                        });
-                      },
+                    _buildSectionTextField(
+                      'Objetivo do Mês',
+                      objetivoController.text.isEmpty
+                          ? 'Qual é o seu objetivo para esse mês?'
+                          : objetivoController.text,
+                      objetivoController,
+                      editable: isEditing,
                     ),
+                    const SizedBox(height: 16),
+                    _buildSectionTextField(
+                      'Faturamento Desejado',
+                      faturamentoDesejadoController.text.isEmpty
+                          ? 'Quanto você deseja faturar?'
+                          : faturamentoDesejadoController.text,
+                      faturamentoDesejadoController,
+                      editable: isEditing,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionEditableTable(
+                        'Preencha a tabela com os seus serviços',
+                        editable: isEditing),
+                    const SizedBox(height: 16),
+                    _buildSectionTextField('Total Previsto Geral',
+                        _calculateTotal(), TextEditingController(),
+                        editable: false),
+                    // const SizedBox(height: 16),
+                    // _buildSectionTextField(
+                    //   'Painel dos Profissionais',
+                    //   'Análise dos profissionais para este plano de ação',
+                    //   submitButton: true,
+                    //   buttonLabel: "Salvar Plano de Ação",
+                    //   onPressed: () {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
+                    //     );
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildSectionTable(
+                    //     'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
                   ],
                 ),
-                _buildSectionTextField(
-                    'Objetivo do Mês', 'Qual é o seu objetivo para esse mês?',
-                    editable: isEditing),
-                const SizedBox(height: 16),
-                _buildSectionTextField(
-                    'Faturamento Desejado', 'Quanto você deseja faturar?',
-                    editable: isEditing),
-                const SizedBox(height: 16),
-                _buildSectionEditableTable(
-                    'Preencha a tabela com os seus serviços',
-                    editable: isEditing),
-                const SizedBox(height: 16),
-                _buildSectionTextField(
-                    'Total Previsto Geral', _calculateTotal(),
-                    editable: false),
-                // const SizedBox(height: 16),
-                // _buildSectionTextField(
-                //   'Painel dos Profissionais',
-                //   'Análise dos profissionais para este plano de ação',
-                //   submitButton: true,
-                //   buttonLabel: "Salvar Plano de Ação",
-                //   onPressed: () {
-                //     ScaffoldMessenger.of(context).showSnackBar(
-                //       const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
-                //     );
-                //   },
-                // ),
-                // const SizedBox(height: 16),
-                // _buildSectionTable(
-                //     'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildSectionTextField(
     String title,
-    String hint, {
+    String hint,
+    TextEditingController controller, {
     bool editable = true,
     bool submitButton = false,
     String buttonLabel = "Submit",
@@ -109,7 +141,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionTitle(title),
-          editable ? _buildTextField(hint) : Text(hint),
+          editable ? _buildTextField(hint, controller) : Text(hint),
           const SizedBox(height: 8),
           submitButton
               ? ElevatedButton(
@@ -131,6 +163,14 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
           _buildSectionTitle(title),
           EditableTable(
             editable: editable,
+            valorControllers: this.valorControllers,
+            quantidadeControllers: this.quantidadeControllers,
+            resultados: this.resultados,
+            onValueChanged: (valor, quantidade, resultados) {
+              valorControllers = valor;
+              quantidadeControllers = quantidade;
+              this.resultados = resultados;
+            },
           ),
         ],
       ),
@@ -157,8 +197,9 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     );
   }
 
-  Widget _buildTextField(String hint) {
+  Widget _buildTextField(String hint, TextEditingController controller) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         hintText: hint,
@@ -245,5 +286,92 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         _buildTableRow('Total', '', '204', 'R\$ 14.200'),
       ],
     );
+  }
+
+  Future<void> _loadData() async {
+    try {
+      //verificar se o usuário é autenticado
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plano_de_acao')
+          .doc('current')
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        setState(() {
+          objetivoController.text = data?['objetivo'] ?? '';
+          faturamentoDesejadoController.text =
+              data?['faturamentoDesejado'] ?? '';
+          final tableData = data?['tableData'] ?? [];
+
+          valorControllers = [];
+          quantidadeControllers = [];
+          resultados = [];
+
+          for (int i = 0; i < tableData.length; i++) {
+            valorControllers
+                .add(TextEditingController(text: tableData[i]['valor'] ?? ''));
+            quantidadeControllers.add(
+                TextEditingController(text: tableData[i]['quantidade'] ?? ''));
+            resultados.add(double.tryParse(tableData[i]['valor']) ?? 0.0);
+          }
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plano de ação carregado com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar o plano de ação: $e')),
+      );
+    }
+  }
+
+  Future<void> _saveData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+
+      //preparando tabela
+      List<Map<String, dynamic>> tableData = [];
+      for (int i = 0; i < valorControllers.length; i++) {
+        tableData.add({
+          'valor': valorControllers[i].text,
+          'quantidade': quantidadeControllers[i].text,
+          'reultado': resultados[i],
+        });
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plano_de_acao')
+          .doc('current')
+          .set({
+        'objetivo': objetivoController.text,
+        'faturamentoDesejado': faturamentoDesejadoController.text,
+        'tableData': tableData,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plano de ação salvo com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar plano: $e')),
+      );
+    }
   }
 }

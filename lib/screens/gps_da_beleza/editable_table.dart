@@ -2,10 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class EditableTable extends StatefulWidget {
+  List<TextEditingController> valorControllers = [];
+  List<TextEditingController> quantidadeControllers = [];
+  List<double> resultados = [];
   final bool editable;
-  final Function(String)? onValueChanged;
+  final Function(
+    List<TextEditingController> valorControllers,
+    List<TextEditingController> quantidadeControllers,
+    List<double> resultados,
+  )? onValueChanged;
 
-  const EditableTable({super.key, this.onValueChanged, this.editable = true});
+  EditableTable({
+    super.key,
+    this.onValueChanged,
+    this.editable = true,
+    this.valorControllers = const [],
+    this.quantidadeControllers = const [],
+    this.resultados = const [],
+  });
   @override
   State<EditableTable> createState() => _EditableTableState();
 }
@@ -19,7 +33,12 @@ class _EditableTableState extends State<EditableTable> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    addNewRow();
+    _valorControllers = widget.valorControllers;
+    _quantidadeControllers = widget.quantidadeControllers;
+    _resultados = widget.resultados;
+    if (_valorControllers.isEmpty) {
+      addNewRow();
+    }
   }
 
   @override
@@ -114,7 +133,9 @@ class _EditableTableState extends State<EditableTable> {
                       _updateResult(index);
                     });
                     widget.onValueChanged?.call(
-                        value); // Chama o método de atualização em tempo real
+                        valorControllers,
+                        quantidadeControllers,
+                        resultados); // Chama o método de atualização em tempo real
                   },
                 )
               : Center(
@@ -141,7 +162,9 @@ class _EditableTableState extends State<EditableTable> {
                       _updateResult(index);
                     });
                     widget.onValueChanged?.call(
-                        value); // Chama o método de atualização em tempo real
+                        valorControllers,
+                        quantidadeControllers,
+                        resultados); // Chama o método de atualização em tempo real
                   },
                 )
               : Center(
@@ -207,7 +230,7 @@ class _EditableTableState extends State<EditableTable> {
   }
 
   get resultados {
-    return _resultados as List;
+    return _resultados;
   }
 
   get valorControllers {
@@ -216,5 +239,17 @@ class _EditableTableState extends State<EditableTable> {
 
   get quantidadeControllers {
     return _quantidadeControllers;
+  }
+
+  set resultados(value) {
+    _resultados = value;
+  }
+
+  set valorControllers(value) {
+    _valorControllers = value;
+  }
+
+  set quantidadeControllers(value) {
+    _quantidadeControllers = value;
   }
 }
