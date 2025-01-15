@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:star_beauty_app/components/custom_text.dart';
+import 'package:star_beauty_app/components/edit_button.dart';
 
 class MonthlyReportScreen extends StatefulWidget {
   const MonthlyReportScreen({super.key});
@@ -33,6 +34,41 @@ bool isEditing = false;
 
 final ScrollController _scrollController = ScrollController();
 
+class GrupoNegocio {
+  final TextEditingController cabelo = TextEditingController(text: '0');
+  final TextEditingController estetica = TextEditingController(text: '0');
+  final TextEditingController manicure = TextEditingController(text: '0');
+  final TextEditingController maquiagem = TextEditingController(text: '0');
+  final TextEditingController depilacao = TextEditingController(text: '0');
+
+  double sum() {
+    return double.parse(cabelo.text) +
+        double.parse(depilacao.text) +
+        double.parse(estetica.text) +
+        double.parse(manicure.text) +
+        double.parse(maquiagem.text);
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'cabelo': cabelo.text,
+      'estetica': estetica.text,
+      'manicure': manicure.text,
+      'maquiagem': maquiagem.text,
+      'depilacao': depilacao.text,
+      'total': sum().toString(),
+    };
+  }
+
+  void fromMap(Map<String, dynamic> map) {
+    cabelo.text = map['cabelo'] ?? '0';
+    estetica.text = map['estetica'] ?? '0';
+    manicure.text = map['manicure'] ?? '0';
+    maquiagem.text = map['maquiagem'] ?? '0';
+    depilacao.text = map['depilacao'] ?? '0';
+  }
+}
+
 class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -57,6 +93,9 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   final TextEditingController manutencaoController = TextEditingController();
 
   final TextEditingController resultadoController = TextEditingController();
+
+  GrupoNegocio faturamento = GrupoNegocio();
+  GrupoNegocio servicos = GrupoNegocio();
 
   late Future<void> _futureData;
   bool isEditing = false;
@@ -231,72 +270,46 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (!isEditing)
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                isEditing = true;
-                              });
-                            },
-                            child: const Text("Editar"),
-                          )
-                        else
-                          Row(
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    isEditing = false;
-                                    // Opcional: Restaurar valores originais
-                                  });
-                                },
-                                child: const Text(
-                                  "Cancelar",
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    // Atualiza os valores no estado
-                                    final despesasFixasTotal = _calculateSum([
-                                      aluguelController,
-                                      funcionarioController,
-                                      aguaController,
-                                      luzController,
-                                      contadorController,
-                                      internetController,
-                                    ]);
+                        EditButton(
+                          onCancel: () {
+                            setState(() {
+                              _loadData();
+                            });
+                          },
+                          onSave: () {
+                            setState(() {
+                              // Atualiza os valores no estado
+                              final despesasFixasTotal = _calculateSum([
+                                aluguelController,
+                                funcionarioController,
+                                aguaController,
+                                luzController,
+                                contadorController,
+                                internetController,
+                              ]);
 
-                                    final despesasVariaveisTotal =
-                                        _calculateSum([
-                                      comissaoController,
-                                      mercadoController,
-                                      manutencaoController,
-                                    ]);
+                              final despesasVariaveisTotal = _calculateSum([
+                                comissaoController,
+                                mercadoController,
+                                manutencaoController,
+                              ]);
 
-                                    final resultado = despesasFixasTotal +
-                                        despesasVariaveisTotal;
+                              final resultado =
+                                  despesasFixasTotal + despesasVariaveisTotal;
 
-                                    // Atualiza os controladores com os valores recalculados
-                                    resultadoController.text =
-                                        resultado.toStringAsFixed(2);
+                              // Atualiza os controladores com os valores recalculados
+                              resultadoController.text =
+                                  resultado.toStringAsFixed(2);
 
-                                    isEditing = false;
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            "Alterações salvas com sucesso!"),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  });
-                                },
-                                child: const Text("Salvar"),
-                              ),
-                            ],
-                          ),
+                              _saveData();
+                            });
+                          },
+                          onEditStateChanged: (value) {
+                            setState(() {
+                              isEditing = value;
+                            });
+                          },
+                        ),
                       ],
                     ),
 
@@ -312,13 +325,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                           children: [
                             const CustomText(text: "Total", isTitle: true),
                             CustomText(
-                              text: "R\$ ${_calculateSum([
-                                    TextEditingController(text: "2000"),
-                                    TextEditingController(text: "1500"),
-                                    TextEditingController(text: "1000"),
-                                    TextEditingController(text: "500"),
-                                    TextEditingController(text: "1000"),
-                                  ])}",
+                              text: "R\$ ${faturamento.sum()}",
                               isTitle: true,
                             ),
                           ],
@@ -327,11 +334,11 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                         _buildExpenseCategory(
                           title: "Por área de negócio",
                           controllers: [
-                            {"Cabelo": TextEditingController(text: "2000")},
-                            {"Manicure": TextEditingController(text: "1500")},
-                            {"Estética": TextEditingController(text: "1000")},
-                            {"Maquiagem": TextEditingController(text: "500")},
-                            {"Depilação": TextEditingController(text: "1000")},
+                            {"Cabelo": faturamento.cabelo},
+                            {"Manicure": faturamento.manicure},
+                            {"Estética": faturamento.estetica},
+                            {"Maquiagem": faturamento.maquiagem},
+                            {"Depilação": faturamento.depilacao},
                           ],
                         ),
                       ],
@@ -348,13 +355,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                           children: [
                             const CustomText(text: "Total", isTitle: true),
                             CustomText(
-                              text: "R\$ ${_calculateSum([
-                                    TextEditingController(text: "50"),
-                                    TextEditingController(text: "40"),
-                                    TextEditingController(text: "30"),
-                                    TextEditingController(text: "20"),
-                                    TextEditingController(text: "10"),
-                                  ])}",
+                              text: "R\$ ${servicos.sum()}",
                               isTitle: true,
                             ),
                           ],
@@ -363,11 +364,11 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                         _buildExpenseCategory(
                           title: "Por área de negócio",
                           controllers: [
-                            {"Cabelo": TextEditingController(text: "50")},
-                            {"Manicure": TextEditingController(text: "40")},
-                            {"Estética": TextEditingController(text: "30")},
-                            {"Maquiagem": TextEditingController(text: "20")},
-                            {"Depilação": TextEditingController(text: "10")},
+                            {"Cabelo": servicos.cabelo},
+                            {"Manicure": servicos.manicure},
+                            {"Estética": servicos.estetica},
+                            {"Maquiagem": servicos.maquiagem},
+                            {"Depilação": servicos.depilacao},
                           ],
                         ),
                       ],
@@ -542,14 +543,22 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           mercadoController.text = data?['mercado'] ?? '';
           manutencaoController.text = data?['manutencao'] ?? '';
           resultadoController.text = data?['resultado'] ?? '';
+
+          //faturamento
+          faturamento
+              .fromMap(data?['faturamentoGrupo'] as Map<String, dynamic>);
+
+          //serviços
+          servicos.fromMap(data?['servicosGrupo'] as Map<String, dynamic>);
         });
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Plano de ação carregado com sucesso!')),
+        const SnackBar(
+            content: Text('relatório mensal carregado com sucesso!')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar o plano de ação: $e')),
+        SnackBar(content: Text('Erro ao carregar o relatório mensal: $e')),
       );
     }
   }
@@ -584,13 +593,15 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         'manutencao': manutencaoController.text,
         'resultado': resultadoController.text,
         'updatedAt': FieldValue.serverTimestamp(),
+        'faturamentoGrupo': faturamento.toMap(),
+        'servicosGrupo': servicos.toMap(),
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Plano de ação salvo com sucesso!')),
+        const SnackBar(content: Text('relatório mensal salvo com sucesso!')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar plano: $e')),
+        SnackBar(content: Text('Erro ao salvar relatório mensal: $e')),
       );
     }
   }
