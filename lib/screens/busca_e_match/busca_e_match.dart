@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:star_beauty_app/components/custom_text.dart';
 
@@ -20,6 +22,8 @@ class BuscaEMatch extends StatefulWidget {
 }
 
 class _BuscaEMatchState extends State<BuscaEMatch> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<Profile> profiles = [
     Profile(name: 'Proprietário 1', description: 'Salão de Beleza', type: 'owner', image: 'https://i.pinimg.com/736x/0d/0e/93/0d0e939d220bf6fe27d34f2cc8d0cd95.jpg'),
     Profile(name: 'Proprietário 2', description: 'Barbearia', type: 'owner', image: 'https://i.pinimg.com/736x/0d/0e/93/0d0e939d220bf6fe27d34f2cc8d0cd95.jpg'),
@@ -39,6 +43,9 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
   void initState() {
     super.initState();
     filteredProfiles = profiles;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      _loadUserData();
+    });
   }
 
   void applyFilters() {
@@ -55,22 +62,41 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
     });
   }
 
+  Future<void> _loadUserData() async {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('Usuário não autenticado.');
+      }
+
+      final uid = user.uid;
+      final doc = await _firestore.collection('users').doc(uid).get();
+
+      if (!doc.exists) {
+        throw Exception('Perfil do usuário não encontrado no Firestore.');
+      }
+
+      final data = doc.data();
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     // Obtendo a largura da tela
     double screenWidth = MediaQuery.of(context).size.width;
 
-    int columns = 2; // Default para 2 colunas
-    if (screenWidth >= 600) {
-      columns = 3; // 3 colunas para telas maiores
-    } else if (screenWidth >= 400) {
-      columns = 2; // 2 colunas para telas médias
+    int columns;
+    if (screenWidth >= 1200) {
+      columns = 4; // Telas muito grandes (desktop)
+    } else if (screenWidth >= 900) {
+      columns = 3; // Telas grandes (tablets em landscape)
+    } else if (screenWidth >= 800) {
+      columns = 2; // Telas médias (tablets ou celulares maiores)
     } else {
-      columns = 1; // 1 coluna para telas pequenas
+      columns = 1; // Telas pequenas (celulares)
     }
 
-    // Definindo o childAspectRatio de forma dinâmica
-    double childAspectRatio = screenWidth > 600 ? 1.0 : 0.8; // Ajusta a proporção com base na largura da tela
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -147,7 +173,6 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
               crossAxisCount: columns, // Usando a variável `columns` para definir a quantidade de colunas
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: childAspectRatio, // Proporção do card ajustada dinamicamente
             ),
             itemCount: filteredProfiles.length,
             itemBuilder: (context, index) {

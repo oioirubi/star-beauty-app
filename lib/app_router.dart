@@ -136,7 +136,7 @@ GoRouter createRouter(BuildContext context) {
             GoRoute(
               path: '/classificados',
               builder: (context, state) =>
-                  const Classificados(userType: 'UserType'),
+                   Classificados(userType: 'UserType'),
             ),
             GoRoute(
               path: '/news',
