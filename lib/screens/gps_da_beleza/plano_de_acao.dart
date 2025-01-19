@@ -1,5 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:star_beauty_app/components/custom_container.dart';
+import 'package:star_beauty_app/components/custom_text.dart';
+import 'package:star_beauty_app/components/edit_button.dart';
+import 'package:star_beauty_app/screens/gps_da_beleza/editable_table.dart';
 
 class ActionPlanScreen extends StatefulWidget {
   const ActionPlanScreen({super.key, required String userType});
@@ -9,79 +15,183 @@ class ActionPlanScreen extends StatefulWidget {
 }
 
 class _ActionPlanScreenState extends State<ActionPlanScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final TextEditingController objetivoController = TextEditingController();
+  final TextEditingController faturamentoDesejadoController =
+      TextEditingController();
+  List<TextEditingController> servicoControllers = [];
   List<TextEditingController> valorControllers = [];
   List<TextEditingController> quantidadeControllers = [];
   List<double> resultados = [];
+  late Future<void> _futureData;
+  bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    // Adicionar 4 linhas iniciais vazias
-    for (int i = 0; i < 4; i++) {
-      valorControllers.add(TextEditingController());
-      quantidadeControllers.add(TextEditingController());
-      resultados.add(0.0);
-    }
+    _futureData = _loadData();
+    // // Adicionar 4 linhas iniciais vazias
+    // for (int i = 0; i < 4; i++) {
+    //   valorControllers.add(TextEditingController());
+    //   quantidadeControllers.add(TextEditingController());
+    //   resultados.add(0.0);
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Plano de Ação'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('Objetivo do Mês'),
-            _buildTextField('Qual é o seu objetivo para esse mês?'),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Faturamento Desejado'),
-            _buildNumberField('Quanto você deseja faturar?'),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Preencha a tabela com os seus serviços'),
-            _buildEditableServiceTable(),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    valorControllers.add(TextEditingController());
-                    quantidadeControllers.add(TextEditingController());
-                    resultados.add(0.0);
-                  });
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Adicionar Linha'),
+    return FutureBuilder(
+      future: _futureData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container();
+        }
+        return Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1080),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const CustomText(
+                          text: "Plano de Ação",
+                          isBigTitle: true,
+                        ),
+                        EditButton(
+                          onEditStateChanged: (value) {
+                            setState(() {
+                              isEditing = value;
+                            });
+                          },
+                          onSave: () {
+                            _saveData();
+                          },
+                          onCancel: () {
+                            _futureData = _loadData();
+                          },
+                        ),
+                      ],
+                    ),
+                    _buildSectionTextField(
+                      'Objetivo do Mês',
+                      objetivoController.text.isEmpty
+                          ? 'Qual é o seu objetivo para esse mês?'
+                          : objetivoController.text,
+                      objetivoController,
+                      editable: isEditing,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionTextField(
+                      'Faturamento Desejado',
+                      faturamentoDesejadoController.text.isEmpty
+                          ? 'Quanto você deseja faturar?'
+                          : faturamentoDesejadoController.text,
+                      faturamentoDesejadoController,
+                      editable: isEditing,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionEditableTable(
+                        'Preencha a tabela com os seus serviços',
+                        editable: isEditing),
+                    const SizedBox(height: 16),
+                    _buildSectionTextField('Total Previsto Geral',
+                        _calculateTotal(), TextEditingController(),
+                        editable: false),
+                    // const SizedBox(height: 16),
+                    // _buildSectionTextField(
+                    //   'Painel dos Profissionais',
+                    //   'Análise dos profissionais para este plano de ação',
+                    //   submitButton: true,
+                    //   buttonLabel: "Salvar Plano de Ação",
+                    //   onPressed: () {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       const SnackBar(content: Text('Plano de Ação salvo com sucesso!')),
+                    //     );
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildSectionTable(
+                    //     'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Total Previsto Geral'),
-            _buildDataCard(_calculateTotal()),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Painel dos Profissionais'),
-            _buildTextField(
-                'Análise dos profissionais para este plano de ação'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Lógica para salvar o plano de ação
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Plano de Ação salvo com sucesso!')),
-                );
-              },
-              child: const Text('Salvar Plano de Ação'),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionTitle(
-                'Não sabe por onde começar? Você pode usar essa tabela exemplo como referência:'),
-            _buildExampleTable(),
-          ],
-        ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionTextField(
+    String title,
+    String hint,
+    TextEditingController controller, {
+    bool editable = true,
+    bool submitButton = false,
+    String buttonLabel = "Submit",
+    Function()? onPressed,
+  }) {
+    return CustomContainer(
+      contentPadding: const EdgeInsets.all(50),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(title),
+          editable ? _buildTextField(hint, controller) : Text(hint),
+          const SizedBox(height: 8),
+          submitButton
+              ? ElevatedButton(
+                  onPressed: onPressed,
+                  child: Text(buttonLabel),
+                )
+              : Container()
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionEditableTable(String title, {bool editable = true}) {
+    return CustomContainer(
+      contentPadding: const EdgeInsets.all(50),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(title),
+          EditableTable(
+            editable: editable,
+            servicoControllers: this.servicoControllers,
+            valorControllers: this.valorControllers,
+            quantidadeControllers: this.quantidadeControllers,
+            resultados: this.resultados,
+            onValueChanged: (servico, valor, quantidade, resultados) {
+              servicoControllers = servico;
+              valorControllers = valor;
+              quantidadeControllers = quantidade;
+              this.resultados = resultados;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTable(String title) {
+    return CustomContainer(
+      contentPadding: const EdgeInsets.all(50),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(title),
+          _buildExampleTable(),
+        ],
       ),
     );
   }
@@ -93,8 +203,9 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
     );
   }
 
-  Widget _buildTextField(String hint) {
+  Widget _buildTextField(String hint, TextEditingController controller) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         hintText: hint,
@@ -113,17 +224,6 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
       keyboardType: TextInputType.number,
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.digitsOnly, // Apenas números
-      ],
-    );
-  }
-
-  Widget _buildEditableServiceTable() {
-    return Table(
-      border: TableBorder.all(),
-      children: [
-        _buildTableRow('Serviço', 'Valor', 'Quantidade', 'Resultado'),
-        for (int i = 0; i < valorControllers.length; i++)
-          _buildEditableTableRow(i),
       ],
     );
   }
@@ -148,89 +248,12 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Text(result),
         ),
-      ],
-    );
-  }
-
-  TableRow _buildEditableTableRow(int index) {
-    return TableRow(
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Serviço',
-              border: InputBorder.none, // Remover borda
-              filled: false, // Remover cor de fundo
-            ),
-          ),
-        ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: valorControllers[index],
-            decoration: const InputDecoration(
-              hintText: 'Valor',
-              prefixText: 'R\$ ',
-              border: InputBorder.none, // Remover borda
-              filled: false, // Remover cor de fundo
-            ),
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly, // Apenas números
-            ],
-            onChanged: (value) {
-              _updateResult(
-                  index); // Chama o método de atualização em tempo real
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: quantidadeControllers[index],
-            decoration: const InputDecoration(
-              hintText: 'Quantidade',
-              border: InputBorder.none, // Remover borda
-              filled: false, // Remover cor de fundo
-            ),
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly, // Apenas números
-            ],
-            onChanged: (value) {
-              _updateResult(
-                  index); // Chama o método de atualização em tempo real
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Card(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                resultados[index].toStringAsFixed(2),
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          child: Container(),
         ),
       ],
     );
-  }
-
-  void _updateResult(int index) {
-    final valor = double.tryParse(valorControllers[index].text) ?? 0.0;
-    final quantidade =
-        double.tryParse(quantidadeControllers[index].text) ?? 0.0;
-    setState(() {
-      resultados[index] = valor * quantidade;
-    });
   }
 
   String _calculateTotal() {
@@ -269,5 +292,96 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
         _buildTableRow('Total', '', '204', 'R\$ 14.200'),
       ],
     );
+  }
+
+  Future<void> _loadData() async {
+    try {
+      //verificar se o usuário é autenticado
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plano_de_acao')
+          .doc('current')
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        setState(() {
+          objetivoController.text = data?['objetivo'] ?? '';
+          faturamentoDesejadoController.text =
+              data?['faturamentoDesejado'] ?? '';
+          final tableData = data?['tableData'] ?? [];
+
+          servicoControllers = [];
+          valorControllers = [];
+          quantidadeControllers = [];
+          resultados = [];
+
+          for (int i = 0; i < tableData.length; i++) {
+            servicoControllers.add(
+                TextEditingController(text: tableData[i]['servico'] ?? ''));
+            valorControllers
+                .add(TextEditingController(text: tableData[i]['valor'] ?? ''));
+            quantidadeControllers.add(
+                TextEditingController(text: tableData[i]['quantidade'] ?? ''));
+            resultados.add(double.tryParse(tableData[i]['valor']) ?? 0.0);
+          }
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plano de ação carregado com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar o plano de ação: $e')),
+      );
+    }
+  }
+
+  Future<void> _saveData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+
+      //preparando tabela
+      List<Map<String, dynamic>> tableData = [];
+      for (int i = 0; i < valorControllers.length; i++) {
+        tableData.add({
+          'servico': servicoControllers[i].text,
+          'valor': valorControllers[i].text,
+          'quantidade': quantidadeControllers[i].text,
+          'reultado': resultados[i],
+        });
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plano_de_acao')
+          .doc('current')
+          .set({
+        'objetivo': objetivoController.text,
+        'faturamentoDesejado': faturamentoDesejadoController.text,
+        'tableData': tableData,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plano de ação salvo com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar plano: $e')),
+      );
+    }
   }
 }
