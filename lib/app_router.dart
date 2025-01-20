@@ -9,6 +9,7 @@ import 'package:star_beauty_app/global_state/firebase_auth_notifier.dart';
 import 'package:star_beauty_app/screens/busca_e_match/meus_maths.dart';
 import 'package:star_beauty_app/screens/error_screen.dart';
 import 'package:star_beauty_app/screens/treinamento/course_screen.dart';
+import 'package:star_beauty_app/screens/treinamento/video_screen.dart';
 import 'package:star_beauty_app/screens/usuario/perfil_usuario.dart';
 
 import '/screens/home_screen.dart';
@@ -205,6 +206,14 @@ GoRouter createRouter(BuildContext context) {
                   ),
                 ],
                 progress: 0.5,
+              ),
+            ),
+            GoRoute(
+              path: '/video_screen',
+              builder: (ctx, st) => const VideoScreen(
+                videoURL:
+                    'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1',
+                title: 'Aprendi a mexer no flutter e olha no que deu!!',
               ),
             ),
             // Rotas de "Treinamento"

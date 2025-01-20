@@ -29,76 +29,54 @@ class _StarflixState extends State<Starflix> {
         //   ),
         // ),
         // "Primeiros Passos" Section
-        _buildCourseChapter("Curso Joana Arisel", [
-          'cap 1',
-          'cap 2',
-          'cap 3',
-          'cap 4',
-        ]),
+        _buildCourseChapter(
+          title: "Curso Joana Arisel",
+          cards: [
+            'cap 1',
+            'cap 2',
+            'cap 3',
+            'cap 4',
+          ],
+          color: Colors.blue,
+        ),
         const SizedBox(height: 40),
-        _buildCourseChapter("Curso Carlos Alberto", [
-          'cap 1',
-          'cap 2',
-          'cap 3',
-          'cap 4',
-        ]),
+        _buildCourseChapter(
+          title: "Curso Joana Arisel",
+          cards: [
+            'cap 1',
+            'cap 2',
+            'cap 3',
+            'cap 4',
+          ],
+          color: Colors.purple,
+        ),
         const SizedBox(height: 40),
-        _buildCourseChapter("Curso Juju Melodramatica", [
-          'cap 1',
-          'cap 2',
-          'cap 3',
-          'cap 4',
-        ]),
+        _buildCourseChapter(
+          title: "Curso Joana Arisel",
+          cards: [
+            'cap 1',
+            'cap 2',
+            'cap 3',
+            'cap 4',
+          ],
+          color: Colors.red,
+        ),
         const SizedBox(height: 40),
-        _buildCourseChapter("Curso João de melo", [
-          'cap 1',
-          'cap 2',
-          'cap 3',
-          'cap 4',
-        ]),
-        // const SizedBox(height: 24),
-        // // "Cursos Iane Ventura" Section
-        // Row(
-        //   children: [
-        //     Text(
-        //       'Cursos Iane Ventura',
-        //       style: TextStyle(
-        //         fontSize: 20,
-        //         fontWeight: FontWeight.bold,
-        //         color: Colors.grey[800],
-        //       ),
-        //     ),
-        //     const SizedBox(width: 8),
-        //     // Text(
-        //     //   'Ver tudo →',
-        //     //   style: TextStyle(
-        //     //     color: Colors.orange[800],
-        //     //     fontSize: 14,
-        //     //   ),
-        //     // ),
-        //   ],
-        // ),
-        // const SizedBox(height: 16),
-        // // Course Cards Grid
-        // GridView.count(
-        //   shrinkWrap: true,
-        //   physics: const NeverScrollableScrollPhysics(),
-        //   crossAxisCount: 2,
-        //   mainAxisSpacing: 16,
-        //   crossAxisSpacing: 16,
-        //   childAspectRatio: 0.8,
-        //   children: [
-        //     _buildCourseCard('COMO TER\nRELACIONAMENTOS', Colors.red[900]!),
-        //     _buildCourseCard('COMUNICAÇÃO', Colors.brown),
-        //     _buildCourseCard('INTELIGÊNCIA\nEMOCIONAL', Colors.teal[700]!),
-        //     _buildCourseCard('AUTOESTIMA', Colors.green[800]!),
-        //   ],
-        // ),
+        _buildCourseChapter(
+          title: "Curso Joana Arisel",
+          cards: [
+            'cap 1',
+            'cap 2',
+            'cap 3',
+            'cap 4',
+          ],
+          color: Colors.green,
+        ),
       ],
     );
   }
 
-  Widget _buildCourseCard(String title) {
+  Widget _buildCourseCard(String title, {Color color = Colors.deepOrange}) {
     return TextButton(
       onPressed: () {
         context.go("/course_screen");
@@ -111,8 +89,8 @@ class _StarflixState extends State<Starflix> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.orange[400]!,
-              Colors.deepOrange[500]!,
+              color,
+              Colors.white,
             ],
           ),
           borderRadius: BorderRadius.circular(12),
@@ -150,7 +128,11 @@ class _StarflixState extends State<Starflix> {
     );
   }
 
-  Widget _buildCourseChapter(String title, List<String> cards) {
+  Widget _buildCourseChapter({
+    required String title,
+    required List<String> cards,
+    required Color color,
+  }) {
     return CustomContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +153,7 @@ class _StarflixState extends State<Starflix> {
               scrollDirection: Axis.horizontal,
               children: [
                 for (int i = 0; i < cards.length; i++)
-                  _buildCourseCard(cards[i])
+                  _buildCourseCard(cards[i], color: color)
               ],
             ),
           ),

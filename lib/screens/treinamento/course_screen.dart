@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 
 class CourseScreen extends StatelessWidget {
@@ -40,7 +41,7 @@ class CourseScreen extends StatelessWidget {
                   return LessonButton(
                     lesson: lessons[index],
                     onPressed: () {
-                      print("fucking tingos, this is taking time!!");
+                      context.go("/video_screen");
                     },
                   );
                 },
