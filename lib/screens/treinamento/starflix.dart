@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 
 class Starflix extends StatefulWidget {
@@ -27,7 +28,6 @@ class _StarflixState extends State<Starflix> {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: List.generate(categories.length, (idx) {
         return _buildCategory(context, categories[idx]);
@@ -74,14 +74,18 @@ class _StarflixState extends State<Starflix> {
       margin: const EdgeInsets.only(right: 8), // Added margin between items
       width: 250,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Image.asset(
-          imagePath,
-          width: 250,
-          height: 300, // Added explicit height
-          fit: BoxFit.cover,
-        ),
-      ),
+          borderRadius: BorderRadius.circular(8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              context.go("/course_screen");
+            },
+            child: Image.asset(
+              imagePath,
+              width: 250,
+              height: 300, // Added explicit height
+              fit: BoxFit.cover,
+            ),
+          )),
     );
   }
 }
