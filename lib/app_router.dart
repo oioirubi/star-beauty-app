@@ -185,37 +185,36 @@ GoRouter createRouter(BuildContext context) {
                 expiryDate: "expiryDate",
                 lessons: [
                   LessonItem(
-                    title: "hello world",
-                    duration: "2h30min",
-                    isCompleted: false,
-                  ),
+                      title: "hello world",
+                      duration: "2h30min",
+                      isCompleted: false,
+                      classURL:
+                          'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1'),
                   LessonItem(
-                    title: "hello world",
-                    duration: "2h30min",
-                    isCompleted: false,
-                  ),
+                      title: "hello world",
+                      duration: "2h30min",
+                      isCompleted: false,
+                      classURL:
+                          'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1'),
                   LessonItem(
-                    title: "hello world",
-                    duration: "2h30min",
-                    isCompleted: false,
-                  ),
+                      title: "hello world",
+                      duration: "2h30min",
+                      isCompleted: false,
+                      classURL:
+                          'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1'),
                   LessonItem(
-                    title: "hello world",
-                    duration: "2h30min",
-                    isCompleted: false,
-                  ),
+                      title: "hello world",
+                      duration: "2h30min",
+                      isCompleted: false,
+                      classURL:
+                          "https://morris91.oceansaver.in/pacific/?lFty4gp9ycSRJRCQTm342Gi"),
                 ],
                 progress: 0.5,
               ),
             ),
             GoRoute(
-              path: '/video_screen',
-              builder: (ctx, st) => const VideoScreen(
-                videoURL:
-                    'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1',
-                title: 'Aprendi a mexer no flutter e olha no que deu!!',
-              ),
-            ),
+                path: '/video_screen',
+                builder: (ctx, st) => const VideoScreen()),
             // Rotas de "Treinamento"
             GoRoute(
               path: '/treinamento',

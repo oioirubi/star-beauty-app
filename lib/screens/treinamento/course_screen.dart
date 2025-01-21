@@ -41,7 +41,7 @@ class CourseScreen extends StatelessWidget {
                   return LessonButton(
                     lesson: lessons[index],
                     onPressed: () {
-                      context.go("/video_screen");
+                      onPressed(context, lessons[index]);
                     },
                   );
                 },
@@ -108,14 +108,25 @@ class CourseScreen extends StatelessWidget {
       ],
     );
   }
+
+  void onPressed(BuildContext ctx, LessonItem lesson) {
+    var map = Map<String, dynamic>();
+    map.addAll({
+      'title': lesson.title,
+      'classURL': lesson.classURL,
+    });
+    ctx.go("/video_screen", extra: map);
+  }
 }
 
 class LessonItem {
   final String title;
   final String duration;
   final bool isCompleted;
+  final String classURL;
 
   const LessonItem({
+    required this.classURL,
     required this.title,
     required this.duration,
     this.isCompleted = false,
