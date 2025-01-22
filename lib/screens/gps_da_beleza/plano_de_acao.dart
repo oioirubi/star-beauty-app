@@ -32,12 +32,7 @@ class _ActionPlanScreenState extends State<ActionPlanScreen> {
   void initState() {
     super.initState();
     _futureData = _loadData();
-    // // Adicionar 4 linhas iniciais vazias
-    // for (int i = 0; i < 4; i++) {
-    //   valorControllers.add(TextEditingController());
-    //   quantidadeControllers.add(TextEditingController());
-    //   resultados.add(0.0);
-    // }
+
   }
 
   @override

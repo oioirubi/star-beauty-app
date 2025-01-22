@@ -8,6 +8,8 @@ import 'package:star_beauty_app/global_state/firebase_auth_notifier.dart';
 
 import 'package:star_beauty_app/screens/busca_e_match/meus_maths.dart';
 import 'package:star_beauty_app/screens/error_screen.dart';
+import 'package:star_beauty_app/screens/treinamento/course_screen.dart';
+import 'package:star_beauty_app/screens/treinamento/video_screen.dart';
 import 'package:star_beauty_app/screens/usuario/perfil_usuario.dart';
 
 import '/screens/home_screen.dart';
@@ -175,7 +177,13 @@ GoRouter createRouter(BuildContext context) {
               builder: (context, state) =>
                   const ModeloDeNegocio(userType: 'UserType'),
             ),
-
+            GoRoute(
+              path: '/course_screen',
+              builder: (context, state) => const CourseScreen(),
+            ),
+            // GoRoute(
+            //     path: '/video_screen',
+            //     builder: (ctx, st) => const VideoScreen()),
             // Rotas de "Treinamento"
             GoRoute(
               path: '/treinamento',
