@@ -4,7 +4,10 @@ import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoScreen extends StatefulWidget {
-  const VideoScreen({super.key});
+  final String title;
+  final String videoURL;
+
+  VideoScreen({super.key, required this.title, required this.videoURL});
 
   @override
   _VideoScreenState createState() => _VideoScreenState();
@@ -14,32 +17,20 @@ class _VideoScreenState extends State<VideoScreen> {
   late VideoPlayerController _controller;
   bool _isPlaying = false;
   bool _isVideoInitialized = false;
-  String title = '';
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      initVariables();
-    });
-  }
-
-  void initVariables() {
-    var args = GoRouterState.of(context)?.extra as Map<String, dynamic>;
-
-    setState(() {
-      title = args['title'] ?? '';
-      _controller = VideoPlayerController.network(
-        args['classURL'] ?? '',
-      )..initialize().then(
-          (_) {
-            setState(() {
-              _isVideoInitialized = true;
-            });
-          },
-        );
-    });
+    _controller = VideoPlayerController.network(
+      widget.videoURL ?? '',
+    )..initialize().then(
+        (_) {
+          setState(() {
+            _isVideoInitialized = true;
+          });
+        },
+      );
   }
 
   @override
@@ -61,17 +52,17 @@ class _VideoScreenState extends State<VideoScreen> {
               children: [
                 // Video player
                 AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: _isVideoInitialized
-                        ? Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              VideoPlayer(_controller),
-                              // Play/Pause button overlay
-                              IconButton(
+                  aspectRatio: 16 / 9,
+                  child: _isVideoInitialized
+                      ? Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            VideoPlayer(_controller),
+                            // Play/Pause button overlay
+                            Expanded(
+                              child: IconButton(
                                 icon: Icon(
                                   _isPlaying ? Icons.pause : Icons.play_arrow,
-                                  size: 50,
                                   color: Colors.white,
                                 ),
                                 onPressed: () {
@@ -83,10 +74,11 @@ class _VideoScreenState extends State<VideoScreen> {
                                   });
                                 },
                               ),
-                            ],
-                          )
-                        : Text(
-                            "Failed to initialize video player! \nMaybe the url reverence is not okay?")),
+                            ),
+                          ],
+                        )
+                      : Container(),
+                ),
                 // Video controls
                 VideoProgressIndicator(
                   _controller,
@@ -104,7 +96,7 @@ class _VideoScreenState extends State<VideoScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        widget.title,
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 24,

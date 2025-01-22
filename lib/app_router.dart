@@ -179,42 +179,11 @@ GoRouter createRouter(BuildContext context) {
             ),
             GoRoute(
               path: '/course_screen',
-              builder: (context, state) => const CourseScreen(
-                courseName: "courseName",
-                courseDescription: "courseDescription",
-                expiryDate: "expiryDate",
-                lessons: [
-                  LessonItem(
-                      title: "hello world",
-                      duration: "2h30min",
-                      isCompleted: false,
-                      classURL:
-                          'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1'),
-                  LessonItem(
-                      title: "hello world",
-                      duration: "2h30min",
-                      isCompleted: false,
-                      classURL:
-                          'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1'),
-                  LessonItem(
-                      title: "hello world",
-                      duration: "2h30min",
-                      isCompleted: false,
-                      classURL:
-                          'https://www.dropbox.com/scl/fi/cqiuzy9kk344rrst8w0k3/2025-01-15-16-36-24.mp4?rlkey=nulo63qda68jrzmek1ojepgnk&st=o0g92cdd&dl=1'),
-                  LessonItem(
-                      title: "hello world",
-                      duration: "2h30min",
-                      isCompleted: false,
-                      classURL:
-                          "https://morris91.oceansaver.in/pacific/?lFty4gp9ycSRJRCQTm342Gi"),
-                ],
-                progress: 0.5,
-              ),
+              builder: (context, state) => const CourseScreen(),
             ),
-            GoRoute(
-                path: '/video_screen',
-                builder: (ctx, st) => const VideoScreen()),
+            // GoRoute(
+            //     path: '/video_screen',
+            //     builder: (ctx, st) => const VideoScreen()),
             // Rotas de "Treinamento"
             GoRoute(
               path: '/treinamento',
