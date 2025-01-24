@@ -46,34 +46,10 @@ class _VideoScreenState extends State<VideoScreen> {
         children: [
           // Main content area (video and controls)
           Expanded(
-            flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Video player
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: _isVideoInitialized
-                      ? Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            VideoPlayer(_controller),
-                            // Play/Pause button overlay
-                            Expanded(
-                              child: IconButton(
-                                icon: Icon(
-                                  _isPlaying ? Icons.pause : Icons.play_arrow,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  _togglePausedPlayingState();
-                                },
-                              ),
-                            ),
-                          ],
-                        )
-                      : Container(),
-                ),
+                _buildVideoScreen(),
                 Row(
                   children: [
                     Expanded(
@@ -168,5 +144,34 @@ class _VideoScreenState extends State<VideoScreen> {
       _isPlaying = !_isPlaying;
       _isPlaying ? _controller.play() : _controller.pause();
     });
+  }
+
+  _buildVideoScreen() {
+    return // Video player
+        AspectRatio(
+      aspectRatio: 16 / 9,
+      child: _isVideoInitialized
+          ? Stack(
+              alignment: Alignment.center,
+              children: [
+                VideoPlayer(_controller),
+                Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white,
+                  size: 50,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _togglePausedPlayingState();
+                  }, // Toggle play/pause on tap
+                  child: Container(
+                    color: const Color.fromARGB(
+                        73, 244, 67, 54), // Transparent container
+                  ),
+                ),
+              ],
+            )
+          : Container(),
+    );
   }
 }
