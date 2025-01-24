@@ -66,12 +66,7 @@ class _VideoScreenState extends State<VideoScreen> {
                                   color: Colors.white,
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                    _isPlaying = !_isPlaying;
-                                    _isPlaying
-                                        ? _controller.play()
-                                        : _controller.pause();
-                                  });
+                                  _togglePausedPlayingState();
                                 },
                               ),
                             ),
@@ -79,15 +74,30 @@ class _VideoScreenState extends State<VideoScreen> {
                         )
                       : Container(),
                 ),
-                // Video controls
-                VideoProgressIndicator(
-                  _controller,
-                  allowScrubbing: true,
-                  colors: VideoProgressColors(
-                    playedColor: Colors.red,
-                    bufferedColor: Colors.grey,
-                    backgroundColor: Colors.grey.shade800,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: IconButton(
+                          onPressed: _togglePausedPlayingState,
+                          icon: _isPlaying
+                              ? const Icon(Icons.play_arrow)
+                              : const Icon(Icons.stop)),
+                    ),
+                    // Video controls
+                    Expanded(
+                      flex: 9,
+                      child: VideoProgressIndicator(
+                        _controller,
+                        allowScrubbing: true,
+                        colors: VideoProgressColors(
+                          playedColor: Colors.red,
+                          bufferedColor: Colors.grey,
+                          backgroundColor: Colors.grey.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 // Video title and metadata
                 Padding(
@@ -151,5 +161,12 @@ class _VideoScreenState extends State<VideoScreen> {
         ],
       ),
     );
+  }
+
+  void _togglePausedPlayingState() {
+    setState(() {
+      _isPlaying = !_isPlaying;
+      _isPlaying ? _controller.play() : _controller.pause();
+    });
   }
 }
