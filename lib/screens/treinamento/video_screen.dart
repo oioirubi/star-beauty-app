@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
@@ -30,16 +31,7 @@ class _VideoScreenState extends State<VideoScreen>
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(
-      widget.videoURL ?? '',
-    )..initialize().then(
-        (_) {
-          setState(() {
-            _isVideoInitialized = true;
-            _controller.addListener(_updateCustomProgressIndicator);
-          });
-        },
-      );
+    _SetVideoController();
 
     // Initialize animation controller
     _animationController = AnimationController(
@@ -54,15 +46,6 @@ class _VideoScreenState extends State<VideoScreen>
         curve: Curves.easeInOut,
       ),
     );
-
-    // Listen for animation completion
-    _animationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() {
-          _showIcon = false; // Hide the icon after animation completes
-        });
-      }
-    });
   }
 
   @override
@@ -166,8 +149,9 @@ class _VideoScreenState extends State<VideoScreen>
 
     // Trigger the splash animation
     _animationController.forward().then((_) {
-      _animationController
-          .reverse(); // Reverse the animation after it completes
+      _animationController.reverse().then((_) {
+        _showIcon = false;
+      }); // Reverse the animation after it completes
     });
   }
 
@@ -180,20 +164,18 @@ class _VideoScreenState extends State<VideoScreen>
               children: [
                 VideoPlayer(_controller),
                 // Animated play/pause icon
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: _showIcon
-                      ? Icon(
-                          _isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 50,
-                        )
-                      : Container(),
-                ),
-                GestureDetector(
-                  onTap: _togglePausedPlayingState, // Toggle play/pause on tap
-                  child: Container(
-                    color: Colors.transparent, // Transparent container
+                _buildScaleTransition(),
+                _buildDefaultPauseGesture(),
+                // Fullscreen button
+                Positioned(
+                  bottom: 10,
+                  right: 10,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.fullscreen,
+                      color: Colors.white,
+                    ),
+                    onPressed: _toggleFullScreen,
                   ),
                 ),
               ],
@@ -206,5 +188,85 @@ class _VideoScreenState extends State<VideoScreen>
     if (mounted) {
       setState(() {});
     }
+  }
+
+  void _toggleFullScreen() {
+    // Create an OverlayEntry to display the full-screen video
+    OverlayEntry? _overlayEntry;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: _buildFullScreenVideo(() {
+            // Remove the overlay when exiting full-screen
+            _overlayEntry?.remove();
+            _SetVideoController();
+          }),
+        ),
+      ),
+    );
+    // Insert the overlay into the Overlay
+    Overlay.of(context).insert(_overlayEntry);
+  }
+
+  Widget _buildFullScreenVideo(VoidCallback onExitFullScreen) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        VideoPlayer(_controller),
+        // Fullscreen controls
+        _buildDefaultPauseGesture(), //In this case you see I'm not adding to last, because _onExistFullscreen must be clicked at somepoint
+        Positioned(
+          top: 10,
+          left: 10,
+          child: IconButton(
+            icon: const Icon(
+              Icons.fullscreen_exit,
+              color: Colors.white,
+            ),
+            onPressed: onExitFullScreen, // Exit fullscreen
+          ),
+        ),
+        _buildScaleTransition(),
+      ],
+    );
+  }
+
+  //TIP! very important to add this gesture at last on a stack list
+  Widget _buildDefaultPauseGesture() {
+    return GestureDetector(
+      onTap: _togglePausedPlayingState, // Toggle play/pause on tap
+      child: Container(
+        color: Colors.transparent, // Transparent container
+      ),
+    );
+  }
+
+  Widget _buildScaleTransition() {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: _showIcon
+          ? Icon(
+              _isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.deepPurple,
+              size: 50,
+            )
+          : Container(),
+    );
+  }
+
+  void _SetVideoController({Function? onVideoInitialize}) {
+    _controller = VideoPlayerController.network(
+      widget.videoURL ?? '',
+    )..initialize().then(
+        (_) {
+          setState(() {
+            _isVideoInitialized = true;
+            _controller.addListener(_updateCustomProgressIndicator);
+            onVideoInitialize?.call();
+          });
+        },
+      );
   }
 }
