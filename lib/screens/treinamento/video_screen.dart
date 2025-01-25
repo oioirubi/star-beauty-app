@@ -13,14 +13,22 @@ class VideoScreen extends StatefulWidget {
   _VideoScreenState createState() => _VideoScreenState();
 }
 
-class _VideoScreenState extends State<VideoScreen> {
+class _VideoScreenState extends State<VideoScreen>
+    with SingleTickerProviderStateMixin {
   late VideoPlayerController _controller;
+
+  // Animation controller and animation
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  bool _showIcon = false;
+
+  // Video managment values
   bool _isPlaying = false;
   bool _isVideoInitialized = false;
+  double _volume = 1.0; // Default volume (1.0 = max, 0.0 = muted)
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _controller = VideoPlayerController.network(
       widget.videoURL ?? '',
@@ -28,14 +36,40 @@ class _VideoScreenState extends State<VideoScreen> {
         (_) {
           setState(() {
             _isVideoInitialized = true;
+            _controller.addListener(_updateCustomProgressIndicator);
           });
         },
       );
+
+    // Initialize animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200), // Animation duration
+    );
+
+    // Define the scale animation
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Listen for animation completion
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _showIcon = false; // Hide the icon after animation completes
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_updateCustomProgressIndicator);
     _controller.dispose();
+    _animationController.dispose(); // Dispose the animation controller
     super.dispose();
   }
 
@@ -61,17 +95,17 @@ class _VideoScreenState extends State<VideoScreen> {
                               : const Icon(Icons.stop)),
                     ),
                     // Video controls
-                    Expanded(
-                      flex: 9,
-                      child: VideoProgressIndicator(
-                        _controller,
-                        allowScrubbing: true,
-                        colors: VideoProgressColors(
-                          playedColor: Colors.red,
-                          bufferedColor: Colors.grey,
-                          backgroundColor: Colors.grey.shade800,
-                        ),
-                      ),
+                    Expanded(flex: 9, child: _buildCustomProgressIndicator()),
+                    Slider(
+                      value: _volume,
+                      min: 0.0,
+                      max: 1.0,
+                      onChanged: (value) {
+                        setState(() {
+                          _volume = value;
+                          _controller.setVolume(_volume); // Update volume
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -90,51 +124,35 @@ class _VideoScreenState extends State<VideoScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Row(
-                      //   children: [
-                      //     Icon(Icons.visibility, color: Colors.grey, size: 16),
-                      //     SizedBox(width: 4),
-                      //     Text(
-                      //       '1.2K views',
-                      //       style: TextStyle(color: Colors.grey),
-                      //     ),
-                      //   ],
-                      // ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          // Right sidebar with playlist
-          // Container(
-          //   width: 300,
-          //   color: Colors.black54,
-          //   child: ListView.builder(
-          //     itemCount: 4,
-          //     itemBuilder: (context, index) {
-          //       return ListTile(
-          //         leading: Container(
-          //           width: 120,
-          //           height: 67,
-          //           decoration: BoxDecoration(
-          //             color: Colors.grey.shade800,
-          //             borderRadius: BorderRadius.circular(4),
-          //           ),
-          //         ),
-          //         title: Text(
-          //           'Video ${index + 1}',
-          //           style: TextStyle(color: Colors.white),
-          //         ),
-          //         subtitle: Text(
-          //           '${index + 1}K views',
-          //           style: TextStyle(color: Colors.grey),
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCustomProgressIndicator() {
+    return Container(
+      height: 20, // Adjust the height of the progress indicator
+      child: Slider(
+        value: _controller.value.position.inSeconds.toDouble(),
+        min: 0.0,
+        max: _controller.value.duration.inSeconds.toDouble(),
+        onChanged: (value) {
+          setState(() {
+            _controller.seekTo(Duration(seconds: value.toInt()));
+          });
+        },
+        onChangeEnd: (value) {
+          // Optional: Perform actions when the user stops dragging
+        },
+        activeColor: Colors.deepPurple, // Color of the played portion
+        inactiveColor: Colors.grey.shade800, // Color of the unplayed portion
+        thumbColor: Colors.deepPurple, // Color of the handle (thumb)
       ),
     );
   }
@@ -143,35 +161,50 @@ class _VideoScreenState extends State<VideoScreen> {
     setState(() {
       _isPlaying = !_isPlaying;
       _isPlaying ? _controller.play() : _controller.pause();
+      _showIcon = true;
+    });
+
+    // Trigger the splash animation
+    _animationController.forward().then((_) {
+      _animationController
+          .reverse(); // Reverse the animation after it completes
     });
   }
 
   _buildVideoScreen() {
-    return // Video player
-        AspectRatio(
+    return AspectRatio(
       aspectRatio: 16 / 9,
       child: _isVideoInitialized
           ? Stack(
               alignment: Alignment.center,
               children: [
                 VideoPlayer(_controller),
-                Icon(
-                  _isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: Colors.white,
-                  size: 50,
+                // Animated play/pause icon
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _showIcon
+                      ? Icon(
+                          _isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 50,
+                        )
+                      : Container(),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    _togglePausedPlayingState();
-                  }, // Toggle play/pause on tap
+                  onTap: _togglePausedPlayingState, // Toggle play/pause on tap
                   child: Container(
-                    color: const Color.fromARGB(
-                        73, 244, 67, 54), // Transparent container
+                    color: Colors.transparent, // Transparent container
                   ),
                 ),
               ],
             )
           : Container(),
     );
+  }
+
+  void _updateCustomProgressIndicator() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 }
