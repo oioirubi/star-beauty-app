@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
@@ -7,8 +6,13 @@ import 'package:video_player/video_player.dart';
 class VideoScreen extends StatefulWidget {
   final String title;
   final String videoURL;
+  final Function? onVideoFinished;
 
-  VideoScreen({super.key, required this.title, required this.videoURL});
+  VideoScreen(
+      {super.key,
+      required this.title,
+      required this.videoURL,
+      this.onVideoFinished});
 
   @override
   _VideoScreenState createState() => _VideoScreenState();
@@ -186,7 +190,10 @@ class _VideoScreenState extends State<VideoScreen>
 
   void _updateCustomProgressIndicator() {
     if (mounted) {
-      setState(() {});
+      setState(() {}); //updates de build to update the video progress indicator
+      if (_controller.value.isCompleted) {
+        widget.onVideoFinished?.call();
+      }
     }
   }
 
