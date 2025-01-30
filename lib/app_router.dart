@@ -12,6 +12,7 @@ import 'package:star_beauty_app/screens/treinamento/course_screen.dart';
 import 'package:star_beauty_app/screens/treinamento/video_screen.dart';
 import 'package:star_beauty_app/screens/usuario/perfil_usuario.dart';
 
+
 import '/screens/home_screen.dart';
 
 import 'screens/usuario/user_home.dart';

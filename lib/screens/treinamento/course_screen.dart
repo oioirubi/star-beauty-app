@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:star_beauty_app/screens/treinamento/video_screen.dart';
 
+
 class CourseScreen extends StatefulWidget {
   const CourseScreen();
   @override
