@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
+import 'package:star_beauty_app/global_classes/firebase_user_utils.dart';
 import 'package:star_beauty_app/themes/app_themes.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -13,15 +14,13 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  //Register variables
-  String email = '';
-  String password = '';
-  String confirmPassword = '';
-  String userType = 'professional'; // Valor padrão para 'professional'
+  //User local informations
+  UserData currentUser = UserData(type: "professional");
   bool _isWaitingVerification = false;
-  Function()? onUserRegistered; //for a user to be registered we consider that he is verified to
+  Function()?
+      onUserRegistered; //for a user to be registered we consider that he is verified to
 
-  //Firebase 
+  //Firebase
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
@@ -31,28 +30,31 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   void initState() {
     // TODO: implement initState
-    super.initState();    
+    super.initState();
 
-        onUserRegistered =(){
-      var user = _auth.currentUser;
-       // Redireciona para a página de perfil do usuário
-    context.go('/user_home', extra: {
-      'userType': userType,
-      'userId': user!.uid,
-    });
-   
-    };
+    //on user verification concluded
     _auth.authStateChanges().listen((User? user) {
-    if (user != null && user.emailVerified) {
-      registerUser(user);
-    }
-
-  });
-    
+      if (user != null && user.emailVerified) {
+        currentUser.uid = user.uid;
+        FirebaseUserUtils().registerUser(currentUser, onSuccessfull: () {
+          //confirmação na tela
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text("Dados do usuário salvos no Firestore com sucesso.")),
+          );
+          //e envia o usuário para a próxima página
+          context.go('/user_home', extra: {
+            'userType': currentUser.type,
+            'userId': currentUser.uid,
+          });
+        });
+      }
+    });
   }
 
   // Método para registrar o usuário
-  void tryRegisterUser() async {
+  void tryRegisterUser(UserData newUser) async {
     if (!_formKey.currentState!.validate()) {
       debugPrint("Formulário inválido.");
       return;
@@ -65,18 +67,16 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      debugPrint("Tentando criar usuário com email: $email");
+      debugPrint("Tentando criar usuário com email: ${newUser.email}");
 
       // Cria o usuário no Firebase Authentication
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
+        email: newUser.email.trim(),
+        password: newUser.password,
       );
 
-      final user = userCredential.user;
-
-      if (user == null) {
+      if (userCredential.user == null) {
         throw Exception("Erro ao criar usuário no Firebase Authentication.");
       }
 
@@ -85,7 +85,6 @@ class _SignupScreenState extends State<SignupScreen> {
         const SnackBar(content: Text('Email de verificação enviado!')),
       );
 
-      
       _isWaitingVerification = true;
     } on FirebaseAuthException catch (e) {
       debugPrint("Erro do FirebaseAuth: ${e.code}");
@@ -119,83 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  ///Do not call this method if user is not verified first<br/>
-  ///If you do, I'll cosider that you know what you doing
-  Future<void> registerUser(User user) async {
-    
-    debugPrint("Usuário criado com UID: ${user.uid}");
-    
-    // Adiciona os campos ao Firestore
-    await _firestore.collection('users').doc(user.uid).set({
-      "email": email.trim(),
-      "name": "",
-      "adress": "",
-      "profilePicture": "",
-      "starBeautyStars": 0,
-      "userType": userType,
-      "title": "",
-      "bio": "",
-      "location": "",
-      "language": "Português",
-      "createdAt": FieldValue.serverTimestamp(),
-      "lastLogin": FieldValue.serverTimestamp(),
-      // Novos campos do perfil profissional
-      "areaOfExpertise": "",
-      "experienceTime": "",
-      "potentialDescription": "",
-      "professionalExperience": "",
-      "completedCourses": "",
-      "incomeExpectation": "",
-    });
-    
-    debugPrint("Dados do usuário salvos no Firestore com sucesso.");
-    onUserRegistered?.call();
-  }
 
-  Future<void> deleteCurrentUser() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await user.delete(); // Exclui o usuário do Firebase Authentication
-        print("Usuário excluído com sucesso.");
-      } else {
-        print("Nenhum usuário autenticado para excluir.");
-      }
-    } on FirebaseAuthException catch (e) {
-      print("Erro ao excluir usuário: ${e.message}");
-      if (e.code == 'requires-recent-login') {
-        print("É necessário fazer login novamente antes de excluir o usuário.");
-      }
-    } catch (e) {
-      print("Erro desconhecido ao excluir o usuário: $e");
-    }
-  }
-
-  Future<void> reauthenticateAndDeleteUser(
-      String email, String password) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print("Nenhum usuário autenticado.");
-        return;
-      }
-
-      // Reautentica o usuário
-      final credential = EmailAuthProvider.credential(
-        email: email,
-        password: password,
-      );
-      await user.reauthenticateWithCredential(credential);
-
-      // Exclui o usuário após a reautenticação
-      await user.delete();
-      print("Usuário reautenticado e excluído com sucesso.");
-    } on FirebaseAuthException catch (e) {
-      print("Erro ao reautenticar/excluir usuário: ${e.message}");
-    } catch (e) {
-      print("Erro desconhecido: $e");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +128,9 @@ class _SignupScreenState extends State<SignupScreen> {
           constraints: const BoxConstraints(maxWidth: 435.0),
           child: CustomContainer(
             title: 'Star Beauty',
-            child: _isWaitingVerification? const Text("Por favor, verifique seu email") :_buildWidgetForm(),
+            child: _isWaitingVerification
+                ? const Text("Por favor, verifique seu email")
+                : _buildWidgetForm(),
           ),
         ),
       ),
@@ -214,184 +139,198 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Form _buildWidgetForm() {
     return Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Cadastro',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  onChanged: (value) => email = value,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira um email.';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Insira um email válido.';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: roxo.withOpacity(0.7),
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  onChanged: (value) => password = value,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira sua senha.';
-                    }
-                    if (value.length < 6) {
-                      return 'A senha deve ter pelo menos 6 caracteres.';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Senha',
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: roxo.withOpacity(0.7),
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  onChanged: (value) => confirmPassword = value,
-                  validator: (value) {
-                    if (value != password) {
-                      return 'As senhas não coincidem.';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Confirme sua senha',
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: roxo.withOpacity(0.7),
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Eu sou Profissional'),
-                      selected: userType == 'professional',
-                      selectedColor: roxo,
-                      backgroundColor: Colors.grey[200],
-                      labelStyle: TextStyle(
-                        color: userType == 'professional'
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                      onSelected: (selected) {
-                        setState(() {
-                          userType = 'professional';
-                        });
-                      },
-                    ),
-                    ChoiceChip(
-                      label: const Text('Eu sou Proprietário'),
-                      selected: userType == 'owner',
-                      selectedColor: roxo,
-                      backgroundColor: Colors.grey[200],
-                      labelStyle: TextStyle(
-                        color:
-                            userType == 'owner' ? Colors.white : Colors.black,
-                      ),
-                      onSelected: (selected) {
-                        setState(() {
-                          userType = 'owner';
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : tryRegisterUser,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
-                      horizontal: 24.0,
-                    ),
-                    minimumSize: const Size(150, 50),
-                    foregroundColor: Colors.white,
-                    backgroundColor: roxo,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100.0),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Cadastrar',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ],
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Cadastro',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
-          );
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            onChanged: (value) => currentUser.email = value,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Por favor, insira um email.';
+              }
+              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                return 'Insira um email válido.';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              labelText: 'Email',
+              filled: true,
+              fillColor: Colors.grey[100],
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: roxo.withOpacity(0.7),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            onChanged: (value) => currentUser.password = value,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Por favor, insira sua senha.';
+              }
+              if (value.length < 6) {
+                return 'A senha deve ter pelo menos 6 caracteres.';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              labelText: 'Senha',
+              filled: true,
+              fillColor: Colors.grey[100],
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: roxo.withOpacity(0.7),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            obscureText: true,
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            validator: (value) {
+              if (value != currentUser.password) {
+                return 'As senhas não coincidem.';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              labelText: 'Confirme sua senha',
+              filled: true,
+              fillColor: Colors.grey[100],
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: roxo.withOpacity(0.7),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            obscureText: true,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ChoiceChip(
+                label: const Text('Eu sou Profissional'),
+                selected: currentUser.type == 'professional',
+                selectedColor: roxo,
+                backgroundColor: Colors.grey[200],
+                labelStyle: TextStyle(
+                  color: currentUser.type == 'professional'
+                      ? Colors.white
+                      : Colors.black,
+                ),
+                onSelected: (selected) {
+                  setState(() {
+                    currentUser.type = 'professional';
+                  });
+                },
+              ),
+              ChoiceChip(
+                label: const Text('Eu sou Proprietário'),
+                selected: currentUser.type == 'owner',
+                selectedColor: roxo,
+                backgroundColor: Colors.grey[200],
+                labelStyle: TextStyle(
+                  color:
+                      currentUser.type == 'owner' ? Colors.white : Colors.black,
+                ),
+                onSelected: (selected) {
+                  setState(() {
+                    currentUser.type = 'owner';
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          ElevatedButton(
+            onPressed: _isLoading
+                ? null
+                : () {
+                    tryRegisterUser(currentUser);
+                  },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                vertical: 16.0,
+                horizontal: 24.0,
+              ),
+              minimumSize: const Size(150, 50),
+              foregroundColor: Colors.white,
+              backgroundColor: roxo,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100.0),
+              ),
+            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'Cadastrar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+class UserData {
+  //Register variables
+  String uid;
+  String email;
+  String password;
+  String type; // Valor padrão para 'professional'
+
+  UserData(
+      {this.uid = '', this.email = '', this.password = '', this.type = ''});
 }
