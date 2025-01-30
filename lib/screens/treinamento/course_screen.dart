@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
+import 'package:star_beauty_app/global_classes/firebase_user_utils.dart';
 import 'package:star_beauty_app/screens/treinamento/video_screen.dart';
 
 
@@ -30,6 +31,8 @@ class _CourseScreenState extends State<CourseScreen> {
   LessonItem? lessonSelected;
 
   late Future _futureData;
+
+  List<CourseProgressInfo> _userProgress = [];
 
   @override
   void initState() {
@@ -62,18 +65,22 @@ class _CourseScreenState extends State<CourseScreen> {
               children: [
                 lessonSelected != null
                     ? Expanded(
-                        flex: 7,
+                        flex: 8,
                         child: VideoScreen(
-                            title: lessonSelected!.title,
-                            videoURL: lessonSelected!.videoURL),
+                          title: lessonSelected!.title,
+                          videoURL: lessonSelected!.videoURL,
+                          onVideoFinished: () {
+                            _onVideoFinished(context, lessonSelected, courseID);
+                          },
+                        ),
                       )
                     : Expanded(
-                        flex: 4,
+                        flex: 8,
                         child: _buildCourseDetails(),
                       ),
                 const SizedBox(height: 50),
                 Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: SizedBox(
                     height: 200,
                     child: ListView.separated(
@@ -119,43 +126,61 @@ class _CourseScreenState extends State<CourseScreen> {
             fontSize: 16,
           ),
         ),
-        const SizedBox(height: 8),
-        // Text(
-        //   'Expira em $expiryDate',
-        //   style: TextStyle(
-        //     color: Colors.grey[600],
-        //     fontSize: 14,
-        //   ),
-        // ),
         const SizedBox(height: 16),
         Container(
           // width: width,
           child: LinearProgressIndicator(
-            value: progress,
+            value: _getProgressionValue(),
             backgroundColor: Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[300]!),
           ),
         ),
-        // const SizedBox(height: 24),
-        // Row(
-        //   children: [
-        //     Expanded(
-        //       child: ElevatedButton(
-        //         onPressed: () {},
-        //         style: ElevatedButton.styleFrom(
-        //           backgroundColor: Colors.orange[300],
-        //           foregroundColor: Colors.white,
-        //         ),
-        //         child: const Text('começar agora'),
-        //       ),
-        //     ),
-        //   ],
-        // ),
       ],
     );
   }
 
   Future<void> _loadData() async {
+    await _loadCoursesData();
+    await _loadProgressionData();
+  }
+
+  Future<void> _loadProgressionData() async {
+    await FirebaseUserUtils().loadUserProgresse(
+      onSuccessfull: (loadedInfo) {
+        _userProgress = loadedInfo;
+
+        setState(
+          () {
+            //update is completed in every course
+            if (_userProgress.where((e) {
+              return e.courseID == courseID;
+            }).isNotEmpty) {
+              var courseProgress = _userProgress.firstWhere((e) {
+                return e.courseID == courseID;
+              });
+              for (int i = 0; i < lessons.length; i++) {
+                if (courseProgress.lessonsIDs.contains(lessons[i].id)) {
+                  lessons[i].isCompleted = true;
+                }
+              }
+            }
+          },
+        );
+      },
+      onFailed: (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('erro ao carregar o progresso do curso: $e')),
+        );
+      },
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('progresso do curso foi carregado com sucesso!')),
+    );
+  }
+
+  Future<void> _loadCoursesData() async {
     try {
       //verificar se o usuário é autenticado
       final user = _auth.currentUser;
@@ -174,9 +199,12 @@ class _CourseScreenState extends State<CourseScreen> {
           courseDescription = data?['description'] ?? '';
           for (var map in data?['lessons'] ?? []) {
             lessons.add(LessonItem(
-                videoURL: map['videoURL'] ?? '',
-                title: map['name'],
-                duration: ''));
+              id: map['id'] ?? '',
+              videoURL: map['videoURL'] ?? '',
+              title: map['name'],
+              isCompleted: false,
+              duration: '',
+            ));
           }
         });
       }
@@ -189,15 +217,49 @@ class _CourseScreenState extends State<CourseScreen> {
       );
     }
   }
+
+  void _onVideoFinished(
+    BuildContext context,
+    LessonItem? lessonSelected,
+    String courseID,
+  ) {
+    //if already exists the course on the list
+    for (int i = 0; i < _userProgress.length; i++) {
+      if (_userProgress[i].courseID == courseID) {
+        if (_userProgress[i].lessonsIDs.contains(lessonSelected!.id)) {
+          //if already exist the id in the list
+          return;
+        }
+        //else give him some space
+        _userProgress[i].lessonsIDs.add(lessonSelected!.id);
+        FirebaseUserUtils().saveUserProgress(ctx: context, info: _userProgress);
+        return;
+      }
+    }
+    //if have not found couse registered on list
+    _userProgress.add(CourseProgressInfo(
+        courseID: courseID, lessonsIDs: [lessonSelected!.id]));
+    FirebaseUserUtils().saveUserProgress(ctx: context, info: _userProgress);
+  }
+
+  double _getProgressionValue() {
+    var sum = 0;
+    for (var i = 0; i < lessons.length; i++) {
+      sum += lessons[i].isCompleted ? 1 : 0;
+    }
+    return sum == 0 ? 0 : sum / lessons.length;
+  }
 }
 
 class LessonItem {
-  final String title;
-  final String duration;
-  final bool isCompleted;
-  final String videoURL;
+  String id;
+  String title;
+  String duration;
+  bool isCompleted;
+  String videoURL;
 
-  const LessonItem({
+  LessonItem({
+    required this.id,
     required this.videoURL,
     required this.title,
     required this.duration,
@@ -221,71 +283,59 @@ class LessonButton extends StatelessWidget {
       onPressed: () {
         onPressed();
       },
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 80,
-              padding: const EdgeInsets.all(16),
+      child: Container(
+        height: 80,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+                color: lesson.isCompleted ? Colors.green[50] : Colors.grey[50],
+                shape: BoxShape.circle,
               ),
-              child: Row(
+              child: Icon(
+                lesson.isCompleted ? Icons.check : Icons.play_arrow,
+                color: lesson.isCompleted ? Colors.green : Colors.grey,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: lesson.isCompleted
-                          ? Colors.green[50]
-                          : Colors.grey[50],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      lesson.isCompleted ? Icons.check : Icons.play_arrow,
-                      color: lesson.isCompleted ? Colors.green : Colors.grey,
+                  Text(
+                    lesson.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          lesson.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          lesson.duration,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Icon(
-                  //   Icons.star_border,
-                  //   color: Colors.grey[400],
+                  // const SizedBox(height: 4),
+                  // Text(
+                  //   lesson.duration,
+                  //   style: TextStyle(
+                  //     color: Colors.grey[600],
+                  //     fontSize: 14,
+                  //   ),
                   // ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
