@@ -6,6 +6,7 @@ import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:star_beauty_app/global_classes/firebase_user_utils.dart';
 import 'package:star_beauty_app/screens/treinamento/video_screen.dart';
 
+
 class CourseScreen extends StatefulWidget {
   const CourseScreen();
   @override

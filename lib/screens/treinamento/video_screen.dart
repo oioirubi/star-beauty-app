@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:video_player/video_player.dart';
 
+
 class VideoScreen extends StatefulWidget {
   final String title;
   final String videoURL;
