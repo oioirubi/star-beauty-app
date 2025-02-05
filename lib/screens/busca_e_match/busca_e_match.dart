@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:star_beauty_app/components/custom_container.dart';
 import 'package:star_beauty_app/components/custom_text.dart';
+import 'package:star_beauty_app/global_classes/firebase_match_utils.dart';
+import 'package:star_beauty_app/global_classes/firebase_user_utils.dart';
 import 'package:star_beauty_app/screens/busca_e_match/filter_match_options.dart';
 import 'package:star_beauty_app/screens/busca_e_match/profile_card.dart';
 
@@ -18,28 +20,10 @@ class BuscaEMatch extends StatefulWidget {
 class _BuscaEMatchState extends State<BuscaEMatch> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final List<Profile> profiles = [
-    Profile(
-      name: 'Proprietário 1',
-      category: 'Salão de Beleza',
-      type: 'owner',
-      image:
-          'https://i.pinimg.com/736x/0d/0e/93/0d0e939d220bf6fe27d34f2cc8d0cd95.jpg',
-      phoneNumber: '3879-6969',
-      email: 'mr@gmail.com',
-    ),
-  ];
-  final List<Profile> matchs = [
-    Profile(
-      name: 'Proprietário 2',
-      category: 'Salão de Beleza',
-      type: 'owner',
-      image:
-          'https://i.pinimg.com/736x/0d/0e/93/0d0e939d220bf6fe27d34f2cc8d0cd95.jpg',
-      phoneNumber: '3879-6969',
-      email: 'mr@gmail.com',
-    ),
-  ];
+  final List<Profile> profiles = [];
+  final List<Profile> matchs = [];
+
+  late var futureGetUsers;
 
   List<Profile> filteredProfiles = [];
   String selectedCategory = 'Todos';
@@ -49,10 +33,25 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
   @override
   void initState() {
     super.initState();
+    futureGetUsers =
+        FirebaseUserUtils().getAllUsers(onSuccessfull: _onLoadedUsers);
     _applyFilters();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      _loadUserData();
-    });
+  }
+
+  _onDeletePressed() {}
+
+  _onLoadedUsers(List<Map<String, dynamic>> loadedUsers) {
+    for (var i = 0; i < loadedUsers.length; i++) {
+      profiles.add(Profile(
+        uid: loadedUsers[i]['uid'] ?? '',
+        phoneNumber: loadedUsers[i]['phoneNumber'] ?? '',
+        email: loadedUsers[i]['email'] ?? '',
+        name: loadedUsers[i]['name'] ?? '',
+        category: loadedUsers[i]['areaOfExpertise'] ?? '',
+        type: loadedUsers[i]['userType'] ?? '',
+        image: loadedUsers[i]['image'] ?? '',
+      ));
+    }
   }
 
   _applyFilters() {
@@ -64,22 +63,6 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
             (selectedType == 'Todos' || profile.type == selectedType);
       }).toList();
     });
-  }
-
-  Future<void> _loadUserData() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('Usuário não autenticado.');
-    }
-
-    final uid = user.uid;
-    final doc = await _firestore.collection('users').doc(uid).get();
-
-    if (!doc.exists) {
-      throw Exception('Perfil do usuário não encontrado no Firestore.');
-    }
-
-    final data = doc.data();
   }
 
   @override
@@ -98,6 +81,18 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
       columns = 1; // Telas pequenas (celulares)
     }
 
+    return FutureBuilder(
+      future: futureGetUsers,
+      builder: (ctx, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container();
+        }
+        return _build_screen(columns);
+      },
+    );
+  }
+
+  CustomContainer _build_screen(int columns) {
     return CustomContainer(
       child: Column(
         children: [
@@ -162,12 +157,22 @@ class _BuscaEMatchState extends State<BuscaEMatch> {
                     itemCount: filteredProfiles.length,
                     itemBuilder: (context, index) {
                       final profile = filteredProfiles[index];
-                      return ProfileCard(profile: profile);
+                      return ProfileCard(
+                        profile: profile,
+                        onDeletePressed: _onDeletePressed,
+                        onFavoritePressed: () {
+                          _onFavoritePressed(profile);
+                        },
+                      );
                     },
                   ),
                 ),
         ],
       ),
     );
+  }
+
+  _onFavoritePressed(Profile profile) async {
+    FirebaseMatchUtils().sendUserLike(toUserID: profile.uid);
   }
 }

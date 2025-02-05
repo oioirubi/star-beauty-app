@@ -6,6 +6,35 @@ class FirebaseUserUtils {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<void> getAllUsers({
+    Function(List<Map<String, dynamic>> loadedUsers)? onSuccessfull,
+    Function(Object e)? onFailed,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception(
+            "Usuário não autenticado"); //caso não, throw uma exception
+      }
+      final queryUsers = await _firestore.collection('users').get();
+      List<Map<String, dynamic>> translatedUsers = [];
+      for (int i = 0; i < queryUsers.size; i++) {
+        // Get the document snapshot
+        final documentSnapshot = queryUsers.docs[i];
+
+        // Convert the document to a Map<String, dynamic>
+        final userMap = documentSnapshot.data() as Map<String, dynamic>;
+        userMap['uid'] = documentSnapshot.id;
+        // Add the map to the list
+        translatedUsers.add(userMap);
+      }
+      onSuccessfull?.call(translatedUsers);
+    } catch (e) {
+      debugPrint("failed to load users:${e}");
+      onFailed?.call(e);
+    }
+  }
+
   Future<void> loadUserProgresse({
     Function(List<CourseProgressInfo> loadedInfo)? onSuccessfull,
     Function(Object e)? onFailed,

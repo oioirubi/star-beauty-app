@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class ProfileCard extends StatefulWidget {
   final Profile profile;
-
-  ProfileCard({super.key, required this.profile});
+  final Function onFavoritePressed;
+  final Function onDeletePressed;
+  ProfileCard(
+      {super.key,
+      required this.profile,
+      required this.onFavoritePressed,
+      required this.onDeletePressed});
 
   @override
   State<ProfileCard> createState() => _ProfileCardState();
@@ -37,21 +42,22 @@ class _ProfileCardState extends State<ProfileCard> {
             children: [
               isMatch && showContact
                   ? _buildContatDetails(onDeletePressed: () {
+                      widget.onDeletePressed();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content:
-                              Text('Você deletou ${widget.profile.name}'),
+                          content: Text('Você deletou ${widget.profile.name}'),
                         ),
                       );
                     })
                   : _buildBasicDetails(
-                      onFavoritePressed: () => {
+                      onFavoritePressed: () {
+                        widget.onFavoritePressed();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content:
                                 Text('Você gostou de ${widget.profile.name}'),
                           ),
-                        )
+                        );
                       },
                     )
             ],
@@ -131,6 +137,7 @@ class _ProfileCardState extends State<ProfileCard> {
 }
 
 class Profile {
+  final String uid;
   final String name;
   final String category;
   final String type;
@@ -139,6 +146,7 @@ class Profile {
   final String email;
 
   Profile({
+    required this.uid,
     required this.phoneNumber,
     required this.email,
     required this.name,
